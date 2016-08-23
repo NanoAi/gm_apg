@@ -1,5 +1,5 @@
 if APG.cfg["ratioLag"] or false then
-    print("[Warning] You don\'t have the last version of APG !")
+    print("[Warning] You don\'t have the latest version of APG!") -- Make a fancy warning?
     APG.cfg.lagSensitivity = APG.cfg.ratioLag
 end
 local ENT = FindMetaTable( "Entity" )
@@ -39,7 +39,7 @@ function ENT:UnGhost( ply )
             if v:IsPlayer() or v:IsVehicle() then
                 self.FoundSmth = true
                 if ply then
-                    APG.notify( "There is something in this prop !", { ply } )
+                    APG.notify( "There is something in this prop!", { ply } )
                 end
                 continue
             end

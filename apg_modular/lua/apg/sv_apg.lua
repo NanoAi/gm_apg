@@ -287,23 +287,8 @@ if APG.cfg.autoFreeze then
     end)
 end
 
---[[------------------------------------------
-    Security fail - Server lag detector
-]]--------------------------------------------
-function APG.process( tab )
-    local sum = 0
-    local max = 0
-    for k, v in pairs( tab ) do
-        sum = sum + v
-        if v > max then
-            max = v
-        end
-    end
-    return sum / (#tab) , max
-end
-
 --[[--------------------
-    Admin utility
+    Utils
 ]]----------------------
 
 function APG.log( msg, ply)
@@ -314,22 +299,3 @@ function APG.log( msg, ply)
     end
 end
 
-concommand.Add( "APG_showLag", function(ply, cmd, arg)
-    if IsValid(ply) and not ply:IsAdmin() then return end
-    local lastShow = SysTime()
-    local values = {}
-    local time = arg[1] or 30
-    APG.log("[APG] Processing : please wait " .. time .. " seconds", ply )
-    hook.Add("Think","APG_showLag",function()
-        local curTime = SysTime()
-        local diff = curTime - lastShow
-        table.insert(values, diff)
-        lastShow = curTime
-    end)
-    timer.Simple( time , function()
-        hook.Remove("Think","APG_showLag")
-        local avg, max = APG.process( values )
-        values = {}
-        APG.log("[APG] Avg : " .. avg .. " | Max : " .. max, ply )
-    end)
-end)

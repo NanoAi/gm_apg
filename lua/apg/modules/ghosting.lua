@@ -1,0 +1,162 @@
+local mod = "ghosting"
+
+--[[------------------------------------------
+
+    A.P.G. - a lightweight Anti Prop Griefing solution (v{{ script_version_name }})
+    Made by While True (http://steamcommunity.com/id/while_true/) and LuaTenshi (http://steamcommunity.com/id/BoopYoureDead/)
+
+    ============================
+     GHOSTING/UNGHOSTING MODULE
+    ============================
+
+    Developper informations :
+    ---------------------------------
+    Used variables :
+        ghost_color = { value = Color(34, 34, 34, 220), desc = "Color set on ghosted props" }
+        bad_ents = {
+            value = {
+                ["prop_physics"] = true,
+                ["wire_"] = false,
+                ["gmod_"] = false },
+            desc = "Entities to ghost/control/secure"}
+
+]]--------------------------------------------
+
+--[[------------------------------------------
+        Override base functions
+]]--------------------------------------------
+
+local ENT = FindMetaTable( "Entity" )
+APG.oSetColGroup = APG.oSetColGroup or ENT.SetCollisionGroup
+function ENT:SetCollisionGroup( group )
+    if APG.isBadEnt( self ) and APG.getOwner( self ) then
+        if group == COLLISION_GROUP_NONE then
+            if not self.APG_Frozen then
+                group = COLLISION_GROUP_INTERACTIVE
+            end
+        end
+    end
+    return APG.oSetColGroup( self, group )
+end
+
+local PhysObj = FindMetaTable("PhysObj")
+APG.oEnableMotion = APG.oEnableMotion or PhysObj.EnableMotion
+function PhysObj:EnableMotion( bool )
+    local ent = self:GetEntity()
+    if APG.isBadEnt( self ) and APG.getOwner( self ) then
+        ent.APG_Frozen = not bool
+        if not ent.APG_Frozen then
+            ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
+        end
+    end
+    return APG.oEnableMotion( self, bool)
+end
+
+function APG.entGhost( ent )
+    if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+
+    if not ent.APG_Ghosted then
+        ent.APG_oColGroup = ent:GetCollisionGroup()
+        ent.APG_Ghosted = true
+
+        if not ent.APG_oldColor then
+            ent.APG_oldColor = ent:GetColor()
+        end
+
+        ent:SetRenderMode(RENDERMODE_TRANSALPHA)
+        ent:DrawShadow(false)
+        ent:SetColor( APG.cfg.["ghost_color"].value )
+        ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
+    end
+end
+
+function APG.entUnGhost( ent, ply )
+    if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+
+    if not ent.APG_Picked and not ent.APG_Ghosted then
+
+        ent.APG_isTrap = false
+        for _,v in pairs(ents.FindInSphere(ent:GetPos(),20)) do
+            if v:IsPlayer() or v:IsVehicle() then
+                ent.APG_isTrap = true
+                if ply then
+                    APG.notify( "There is something in this prop !", { ply } )
+                end
+                break
+            end
+        end
+        if not ent.APG_isTrap then
+            ent.APG_Ghosted  = false
+            ent:DrawShadow(true)
+            ent:SetColor( ent.APG_oldColor or Color(255,255,255,255))
+            ent.APG_oldColor = false
+
+            local newColGroup = COLLISION_GROUP_INTERACTIVE
+            if ent.APG_oColGroup == COLLISION_GROUP_WORLD then
+                newColGroup = ent.APG_oColGroup
+            elseif ent.APG_Frozen then
+                newColGroup = COLLISION_GROUP_NONE
+            end
+            ent:SetCollisionGroup( newColGroup )
+        else
+            ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
+        end
+    end
+end
+
+function APG.ConstrainApply( ent, callback )
+    local constrained = constraint.GetAllConstrainedEntities(ent)
+    for _,v in nex, constrained do
+        if IsValid(v) then
+            callback( v )
+        end
+    end
+end
+
+APG.hookAdd( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
+    if not APG.canPhysGun( ent, ply ) then return end
+    if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    if ent:IsPlayerHolding() and not ply:IsAdmin() then return false end -- Blocks two people from holding the same prop
+
+    APG.entGhost(ent)
+
+    APG.ConstrainApply( ent, function( _ent )
+        if not _ent.APG_Frozen then
+            APG.entGhost( _ent )
+        end
+    end) -- Apply ghost to all constrained ents
+
+end)
+
+APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
+    if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    if ent:GetCollisionGroup( ) != COLLISION_GROUP_WORLD then
+        ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
+    end
+end)
+
+APG.hookAdd( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
+    if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    APG.entUnGhost( ent )
+    APG.ConstrainApply( ent, function( _ent )
+        APG.entUnGhost( _ent )
+    end) -- Apply unghost to all constrained ents
+end)
+
+APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
+    if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    timer.Simple( 0 , function()
+        if not IsValid( ent ) then return end
+        local owner = APG.getOwner( ent )
+        if IsValid( owner ) and owner:IsPlayer() then
+            local PhysObj = ent:GetPhysicsObject()
+            if IsValid(PhysObj) and PhysObj:IsMoveable() then
+                ent.APG_Frozen = false
+                ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
+            else
+                ent.APG_Frozen = true
+                ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+            end
+        end
+    end)
+end)

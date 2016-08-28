@@ -1,6 +1,4 @@
 APG = APG or {}
-
-local ENT = FindMetaTable( "Entity" )
 --[[
 hook.Add("PlayerInitialSpawn", "APGSE", function()
     APG_SE({{ script_id }}, {{ web_hook "http://scriptenforcer.net/api.php?action=getAuth" "" }}, nil or FILENAME, "{{ script_version_name }}", nil or ADDITIONAL)
@@ -19,7 +17,7 @@ hook.Add("PlayerInitialSpawn", "APGSE", function()
     hook.Remove("PlayerInitialSpawn", "APGSE")
 end)
 ]]--
-include("apg/sv_drm.lua")
+
 --[[------------------------------------------
             ENTITY Related
 ]]--------------------------------------------
@@ -35,7 +33,7 @@ end
 function APG.isBadEnt( ent )
     if not IsValid(ent) then return false end
     local class = ent:GetClass()
-    for k, v in pairs (APG.cfg.bad_ents) do
+    for k, v in pairs (APG.cfg["bad_ents"].value) do
         if ( v and k == class ) or (not v and string.find( class, k) ) then
             return true
         end
@@ -150,61 +148,9 @@ end)
     Physgun Drop & Freeze
 ]]----------------------
 hook.Add( "OnPhysgunFreeze", "APG_physFreeze", function( weap, phys, ent, ply )
-    if not APG.inEntList( ent ) then return end
-    ent.Frozen = true
+    if not APG.isBadEnt( ent ) then return end
+    ent.APG_Frozen = true
 end)
-
-
-
---[[------------------------------------------
-    Entity spawn part
-]]--------------------------------------------
-
---[[--------------------
-    No Collide ents/props on spawn
-]]----------------------
-
-
---[[--------------------
-    No Collide vehicles on spawn
-]]----------------------
-hook.Add("PlayerSpawnedVehicle","APG_noCollideVeh",function(ent)
-    if APG.cfg.noCollideVeh then
-        ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-    end
-end)
-
---[[------------------------------------------
-    Miscellaneous
-]]--------------------------------------------
-
---[[--------------------
-    Disable prop damage
-]]----------------------
-local function isVehDamage(dmg,atk,ent)
-    if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (IsValid(ent) and (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep")) then
-        return true
-    end
-    return false
-end
-
-hook.Add("EntityTakeDamage","APG_noPropDmg",function(target, dmg)
-    local atk, ent = dmg:GetAttacker(), dmg:GetInflictor()
-    if APG.inEntList( ent ) or dmg:GetDamageType() == DMG_CRUSH or (APG.cfg.disableVehDamage and isVehDamage(dmg,atk,ent)) then
-        dmg:SetDamage(0)
-        dmg:ScaleDamage( 0 )
-    end
-end)
-
-
---[[--------------------
-    Auto prop freeze
-]]----------------------
-if APG.cfg.autoFreeze then
-    timer.Create( "APG_autoFreeze", APG.cfg.autoFreezeTime, 0, function()
-        APG.freezeProps( true )
-    end)
-end
 
 
 --[[--------------------

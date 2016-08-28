@@ -43,7 +43,7 @@ local PhysObj = FindMetaTable("PhysObj")
 APG.oEnableMotion = APG.oEnableMotion or PhysObj.EnableMotion
 function PhysObj:EnableMotion( bool )
     local ent = self:GetEntity()
-    if APG.isBadEnt( self ) and APG.getOwner( self ) then
+    if APG.isBadEnt( ent ) and APG.getOwner( ent ) then
         ent.APG_Frozen = not bool
         if not ent.APG_Frozen then
             ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
@@ -65,16 +65,15 @@ function APG.entGhost( ent )
 
         ent:SetRenderMode(RENDERMODE_TRANSALPHA)
         ent:DrawShadow(false)
-        ent:SetColor( APG.cfg.["ghost_color"].value )
+        ent:SetColor( APG.cfg["ghost_color"].value )
         ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
     end
 end
 
 function APG.entUnGhost( ent, ply )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-
-    if not ent.APG_Picked and not ent.APG_Ghosted then
-
+    debug.Trace()
+    if ent.APG_Ghosted then
         ent.APG_isTrap = false
         for _,v in pairs(ents.FindInSphere(ent:GetPos(),20)) do
             if v:IsPlayer() or v:IsVehicle() then
@@ -106,8 +105,8 @@ end
 
 function APG.ConstrainApply( ent, callback )
     local constrained = constraint.GetAllConstrainedEntities(ent)
-    for _,v in nex, constrained do
-        if IsValid(v) then
+    for _,v in next, constrained do
+        if IsValid(v) and v != ent then
             callback( v )
         end
     end
@@ -149,8 +148,8 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
         if not IsValid( ent ) then return end
         local owner = APG.getOwner( ent )
         if IsValid( owner ) and owner:IsPlayer() then
-            local PhysObj = ent:GetPhysicsObject()
-            if IsValid(PhysObj) and PhysObj:IsMoveable() then
+            local pObj = ent:GetPhysicsObject()
+            if IsValid(pObj) and pObj:IsMoveable() then
                 ent.APG_Frozen = false
                 ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
             else

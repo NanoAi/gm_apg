@@ -52,12 +52,12 @@ APG.timerCreate("lag_detection", "APG_process", 5, 0, function()
         end
 
         curAvg = APG.process( tickTable )
-        trigValue = curAvg * APG.cfg.lagTrigger
+        trigValue = curAvg * APG.cfg["lagTrigger"].value
     end
 end)
 
 APG.hookAdd( "lag_detection", "APG_lagDetected", "APG_lagDetected_id", function()
-    local func = APG.cfg.lagFunc
+    local func = APG.cfg["lagFunc"].value
     if isstring(func) then
         APG[ func ]()
     else
@@ -75,12 +75,12 @@ APG.hookAdd( "lag_detection", "Think", "APG_detectLag", function()
     delta = curTime - lastThink
     if delta >= trigValue then
         lagCount = lagCount + 1
-        if (lagCount >= APG.cfg.lagCount) or ( delta > APG.cfg.bigLag ) then
+        if (lagCount >= APG.cfg["lagCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
             lagCount = 0
             if not pause then
                 hook.Run( "APG_lagDetected" )
                 pause = true
-                timer.Simple( APG.cfg.lagSpamTime, function() pause = false end)
+                timer.Simple( APG.cfg["lagSpamTime"].value, function() pause = false end)
             end
         end
     else

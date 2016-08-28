@@ -16,7 +16,7 @@ defaultSettings.modules = {
     ["ghosting"] = true,
     ["stack_detection"] = true,
     ["lag_detection"] = true,
-    ["damages_handling"] = true,
+    ["misc"] = true,
     ["method0"] = false
 }
 

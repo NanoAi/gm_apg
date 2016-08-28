@@ -19,17 +19,17 @@ local mod = "stack_detection"
 function APG.checkStack( ent, pcount )
     if not APG.isBadEnt( ent ) then return end
 
-    local efound = ents.FindInSphere(self:GetPos(), APG.cfg.["stackArea"].value )
+    local efound = ents.FindInSphere(ent:GetPos(), APG.cfg["stackArea"].value )
     local count = 0
-    local max_count = APG.cfg.["stackMax"].value
+    local max_count = APG.cfg["stackMax"].value
     for k, v in pairs (efound) do
         if APG.isBadEnt( v ) and APG.getOwner( v ) then
             count = count + 1
         end
     end
     if count >= (pcount or max_count) then
-        local owner, _ = self:CPPIGetOwner()
-        self:Remove()
+        local owner, _ = ent:CPPIGetOwner()
+        ent:Remove()
         if not owner.APG_CantPickup then
             APG.blockPickup( owner )
             APG.notify( "[APG] Do not try to crash the server !", { owner } )

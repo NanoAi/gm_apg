@@ -72,7 +72,6 @@ end
 
 function APG.entUnGhost( ent, ply )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-    debug.Trace()
     if ent.APG_Ghosted then
         ent.APG_isTrap = false
         for _,v in pairs(ents.FindInSphere(ent:GetPos(),20)) do

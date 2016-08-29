@@ -75,7 +75,7 @@ APG.hookAdd( "lag_detection", "Think", "APG_detectLag", function()
     delta = curTime - lastThink
     if delta >= trigValue then
         lagCount = lagCount + 1
-        if (lagCount >= APG.cfg["lagCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
+        if (lagCount >= APG.cfg["lagsCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
             lagCount = 0
             if not pause then
                 hook.Run( "APG_lagDetected" )

@@ -50,8 +50,8 @@ function APG.cleanUp( unfrozen )
     local msg = "[APG] Map cleaned up automatically"
     if unfrozen then msg = "[APG] Unfrozen stuff has been cleaned up" end
     for _, v in pairs (ents.GetAll()) do
-        if IsValid(v) and APG.inEntList( v ) and not v:IsVehicle() and not v:GetParent():IsVehicle() then
-            local owner = v:CPPIGetOwner()
+        if IsValid(v) and APG.isBadEnt( v ) and not v:IsVehicle() and not v:GetParent():IsVehicle() then
+            local owner = APG.getOwner( ent )
             if owner and ((unfrozen and not v.Frozen) or not unfrozen ) then
                 v:Remove()
             end

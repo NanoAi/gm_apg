@@ -51,7 +51,7 @@ function APG.cleanUp( unfrozen )
     if unfrozen then msg = "[APG] Unfrozen stuff has been cleaned up" end
     for _, v in pairs (ents.GetAll()) do
         if IsValid(v) and APG.isBadEnt( v ) and not v:IsVehicle() and not v:GetParent():IsVehicle() then
-            local owner = APG.getOwner( ent )
+            local owner = APG.getOwner( v )
             if owner and ((unfrozen and not v.Frozen) or not unfrozen ) then
                 v:Remove()
             end
@@ -68,7 +68,7 @@ function APG.freezeProps()
     local _ents = ents.GetAll()
     for _,v in pairs ( _ents ) do
         if IsValid(v) and APG.inEntList( v ) and not v.Frozen then
-            local owner = v:CPPIGetOwner() or nil
+            local owner = APG.getOwner( v )
             if owner and not v:IsPlayerHolding( ) and not v:IsVehicle() and not v:GetParent():IsVehicle() then
                 local physObj = v:GetPhysicsObject()
                 if IsValid(physObj) then

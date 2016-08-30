@@ -46,41 +46,58 @@ function APG.getOwner( ent )
     return owner
 end
 
-function APG.cleanUp( unfrozen )
-    local msg = "[APG] Map cleaned up automatically"
-    if unfrozen then msg = "[APG] Unfrozen stuff has been cleaned up" end
-    for _, v in pairs (ents.GetAll()) do
-        if IsValid(v) and APG.isBadEnt( v ) and not v:IsVehicle() and not v:GetParent():IsVehicle() then
-            local owner = APG.getOwner( v )
-            if owner and ((unfrozen and not v.Frozen) or not unfrozen ) then
-                v:Remove()
+function APG.cleanUp ( mode, show, adminsOnly )
+	for _, v in next, ents.GetAll() do
+		if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() then continue end
+		if mode == "unfrozen" and not v.APG_Frozen then
+			continue
+		else
+			v:Remove()
+		end
+	end
+	if show and adminsOnly then
+		APG.notify("Cleaned Up !", { admin, superadmin })
+	elseif show then
+		APG.notify("Cleaned Up !", {})
+	end
+	APG.log("[APG] Cleaned up (mode:".. mode )
+end
+
+function APG.ghostThemAll( show, adminsOnly )
+	if not APG.modules[ mod ] then
+		return APG.log("[APG] Warning : Tried to ghost props but ghosting is disabled !")
+	end
+	for _, v in next, ents.GetAll() do
+		if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or v.APG_Frozen then continue end
+			APG.entGhost( v )
+		end
+	end
+	if show and adminsOnly then
+		APG.notify("Unfrozen props ghosted !", { admin, superadmin })
+	elseif show then
+		APG.notify("Unfrozen props ghosted !", {})
+	end
+	APG.log("[APG] Unfrozen props ghosted !")
+end
+
+function APG.freezeProps( show, adminsOnly)
+	for _, v in next, ents.GetAll() do
+		if not APG.isBadEnt(v) or not APG.getOwner( v ) then continue end
+		    local physObj = v:GetPhysicsObject()
+            if IsValid(physObj) then
+            	physObj:EnableMotion(false)
+            	v.APG_Frozen = true
             end
         end
     end
-    APG.notify( msg )
+    if show and adminsOnly then
+		APG.notify("Props frozen !", { admin, superadmin })
+	elseif show then
+		APG.notify("Props frozen !", {})
+	end
+	APG.log("[APG] Props frozen") 
 end
 
-function APG.cleanUp_unfrozen()
-    APG.cleanUp( true )
-end
-
-function APG.freezeProps()
-    local _ents = ents.GetAll()
-    for _,v in pairs ( _ents ) do
-        if IsValid(v) and APG.inEntList( v ) and not v.Frozen then
-            local owner = APG.getOwner( v )
-            if owner and not v:IsPlayerHolding( ) and not v:IsVehicle() and not v:GetParent():IsVehicle() then
-                local physObj = v:GetPhysicsObject()
-                if IsValid(physObj) then
-                    physObj:EnableMotion(false)
-                    v.Frozen = true
-                end
-            end
-        end
-    end
-    local msg = "[APG] All unfrozen props have been frozen"
-    APG.notify( msg )
-end
 
 function APG.blockPickup( ply )
     if not IsValid(ply) or ply.APG_CantPickup then return end
@@ -106,8 +123,8 @@ end
 --[[------------------------------------------
     Entity pickup part
 ]]--------------------------------------------
-hook.Add("PhysgunPickup","APG_noPropPush",function(ply, ent)
-    if not APG.canPhysGun( ent, ply ) then return end
+hook.Add("PhysgunPickup","APG_PhysgunPickup",function(ply, ent)
+    if not APG.canPhysGun( ent, ply ) then return false end
     if ent:IsPlayerHolding() and not ply:IsAdmin() then return false end -- Blocks exploits two people targetting the same ent.
 
     ent.APG_Picked = true
@@ -117,7 +134,7 @@ end)
 --[[--------------------
     No Collide (between them) on props unfreezed
 ]]----------------------
-hook.Add("PlayerUnfrozeObject", "APG_unFreeze", function (ply, ent, object)
+hook.Add("PlayerUnfrozeObject", "APG_PlayerUnfrozeObject", function (ply, ent, object)
     if not APG.isBadEnt( ent ) then return end
     ent.APG_Frozen = false
 end)
@@ -147,7 +164,7 @@ end)
 --[[--------------------
     Physgun Drop & Freeze
 ]]----------------------
-hook.Add( "OnPhysgunFreeze", "APG_physFreeze", function( weap, phys, ent, ply )
+hook.Add( "OnPhysgunFreeze", "APG_OnPhysgunFreeze", function( weap, phys, ent, ply )
     if not APG.isBadEnt( ent ) then return end
     ent.APG_Frozen = true
 end)

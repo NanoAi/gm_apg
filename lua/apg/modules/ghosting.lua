@@ -34,6 +34,8 @@ function ENT:SetCollisionGroup( group )
             if not self.APG_Frozen then
                 group = COLLISION_GROUP_INTERACTIVE
             end
+        elseif group == COLLISION_GROUP_INTERACTIVE and APG.isTrap(ent) then
+            group = COLLISION_GROUP_DEBRIS_TRIGGER
         end
     end
     return APG.oSetColGroup( self, group )
@@ -50,6 +52,27 @@ function PhysObj:EnableMotion( bool )
         end
     end
     return APG.oEnableMotion( self, bool)
+end
+
+function APG.isTrap(ent)
+    local check = false
+    local center = ent:LocalToWorld(ent:OBBCenter())
+
+    for _,v in next, ents.FindInSphere(center, ent:BoundingRadius()) do
+        if APA.isPlayer(v) then
+            local pos = v:GetPos()
+            local trace = { start = pos, endpos = pos, filter = v }
+            local tr = util.TraceEntity( trace, v )
+
+            if tr.Entity == ent then
+                check = v
+            end
+
+            if check then break end
+        end
+    end
+
+    return check or false
 end
 
 function APG.entGhost( ent )
@@ -73,16 +96,7 @@ end
 function APG.entUnGhost( ent, ply )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     if ent.APG_Ghosted then
-        ent.APG_isTrap = false
-        for _,v in pairs(ents.FindInSphere(ent:GetPos(),20)) do
-            if v:IsPlayer() or v:IsVehicle() then
-                ent.APG_isTrap = true
-                if ply then
-                    APG.notify( "There is something in this prop !", { ply } )
-                end
-                break
-            end
-        end
+        ent.APG_isTrap = APG.isTrap(ent)
         if not ent.APG_isTrap then
             ent.APG_Ghosted  = false
             ent:DrawShadow(true)
@@ -97,6 +111,7 @@ function APG.entUnGhost( ent, ply )
             end
             ent:SetCollisionGroup( newColGroup )
         else
+            APG.notify( "There is something in this prop !", { ply } )
             ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
         end
     end
@@ -127,6 +142,7 @@ APG.hookAdd( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
 end)
 
 APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
+    if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     if ent:GetCollisionGroup( ) != COLLISION_GROUP_WORLD then
         ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )

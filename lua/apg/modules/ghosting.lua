@@ -44,22 +44,22 @@ end
 local PhysObj = FindMetaTable("PhysObj")
 APG.oEnableMotion = APG.oEnableMotion or PhysObj.EnableMotion
 function PhysObj:EnableMotion( bool )
-    local ent = self:GetEntity()
-    if APG.isBadEnt( ent ) and APG.getOwner( ent ) then
-        ent.APG_Frozen = not bool
-        if not ent.APG_Frozen then
-            ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
+    local sent = self:GetEntity()
+    if APG.isBadEnt( sent ) and APG.getOwner( sent ) then
+        sent.APG_Frozen = not bool
+        if not sent.APG_Frozen then
+            sent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
         end
     end
     return APG.oEnableMotion( self, bool)
 end
 
-function APG.isTrap(ent)
+function APG.isTrap( ent )
     local check = false
     local center = ent:LocalToWorld(ent:OBBCenter())
 
     for _,v in next, ents.FindInSphere(center, ent:BoundingRadius()) do
-        if APA.isPlayer(v) then
+        if v:IsPlayer() and v:Alive() then
             local pos = v:GetPos()
             local trace = { start = pos, endpos = pos, filter = v }
             local tr = util.TraceEntity( trace, v )

@@ -54,42 +54,15 @@ end)
 --[[--------------------
     Stacker Exploit Quick Fix
 ]]----------------------
-local toWeld = {}
-local processing = false
-local delay, pLimit = 0.05, 20
-
-local function startWeld()
-    hook.Add("Tick", "APG_delayWeld", function()
-        if #toWeld then
-            APG_delayWeld()
-        else
-            hook.Remove("Tick", "APG_delayWeld")
-        end
+hook.Add( "InitPostEntity", "APG_InitStackFix", function()
+    APG.dJobRegister( "weld", 0.3, 20, function( sents )
+        if not IsValid( sents[1] ) or not IsValid( sents[2]) then return end
+        constraint.Weld( sents[1], sents[2], 0, 0, 0 )
     end)
-end
 
-function APG_delayWeld()
-    if processing then return end
-    processing = true
-    local total = #toWeld
-    local count = math.Clamp(total,0,pLimit)
-    for i = 1, count do
-        local sents = toWeld[1]
-        timer.Create( "delayWeld_" .. i , ( i - 1 ) * delay , 1, function()
-            if not IsValid( sents[1] ) or not IsValid( sents[2]) then return end
-            constraint.Weld( sents[1], sents[2], 0, 0, 0 )
-        end)
-        table.remove(toWeld, 1)
-    end
-    timer.Create("dWeld_process", ( count * delay ), 1, function() processing = false end)
-end
-
-hook.Add( "Think", "APG_InitStackFix", function()
-    hook.Remove("Think", "APG_InitStackFix")
     local TOOL = weapons.GetStored("gmod_tool")["Tool"][ "stacker" ]
     function TOOL:ApplyWeld( lastEnt, newEnt )
         if ( not self:ShouldForceWeld() and not self:ShouldApplyWeld() ) then return end
-        table.insert( toWeld, {lastEnt, newEnt} )
-        startWeld()
+        APG.startDJob( "weld", {lastEnt, newEnt} )
     end
 end)

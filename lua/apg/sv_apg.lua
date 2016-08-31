@@ -148,6 +148,7 @@ end)
 ]]----------------------
 hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
     if not APG.isBadEnt( ent ) then return end
+    ent.APG_Picked = false
     for _,v in next, constraint.GetAllConstrainedEntities(ent) do
         if IsValid(v) then
             local phys = v.GetPhysicsObject and v:GetPhysicsObject() or nil
@@ -178,4 +179,45 @@ function APG.log( msg, ply)
     else
         print( msg )
     end
+end
+
+--[[--------------------
+    Admin utility
+]]----------------------
+local toProcess = {}
+function APG.dJobRegister( job, delay, limit, func )
+    local tab = {
+        content = {},
+        delay = delay,
+        func = func,
+        limit = limit
+    }
+    toProcess[job] = tab
+end
+
+local function APG_delayedTick( job )
+    if toProcess[job].processing then return end
+    toProcess[job].processing = true
+    local delay, pLimit = toProcess[job].delay, toProcess[job].limit
+    local total = #toProcess[job].content
+    local count = math.Clamp(total,0,pLimit)
+    for i = 1, count do
+        local cur = toProcess[job].content[1]
+        timer.Create( "delay_" .. job .. "_" .. i , ( i - 1 ) * delay , 1, function()
+            toProcess[job].func( cur )
+        end)
+        table.remove(toProcess[job].content, 1)
+    end
+    timer.Create("dJob_" .. job .. "_process", ( count * delay ), 1, function() toProcess[job].processing = false end)
+end
+
+function APG.startDJob( job, content )
+    table.insert( toProcess[job].content, content)
+    hook.Add("Tick", "APG_delayed_" .. job, function()
+        if #toProcess[job].content then
+            APG_delayedTick( job )
+        else
+            hook.Remove("Tick", "APG_delayed_" .. job)
+        end
+    end)
 end

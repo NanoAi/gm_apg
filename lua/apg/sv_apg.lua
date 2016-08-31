@@ -47,55 +47,53 @@ function APG.getOwner( ent )
 end
 
 function APG.cleanUp ( mode, show, adminsOnly )
-	for _, v in next, ents.GetAll() do
-		if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() then continue end
-		if mode == "unfrozen" and not v.APG_Frozen then
-			continue
-		else
-			v:Remove()
-		end
-	end
-	if show and adminsOnly then
-		APG.notify("Cleaned Up !", { admin, superadmin })
-	elseif show then
-		APG.notify("Cleaned Up !", {})
-	end
-	APG.log("[APG] Cleaned up (mode:".. mode )
-end
-
-function APG.ghostThemAll( show, adminsOnly )
-	if not APG.modules[ mod ] then
-		return APG.log("[APG] Warning : Tried to ghost props but ghosting is disabled !")
-	end
-	for _, v in next, ents.GetAll() do
-		if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or v.APG_Frozen then continue end
-			APG.entGhost( v )
-		end
-	end
-	if show and adminsOnly then
-		APG.notify("Unfrozen props ghosted !", { admin, superadmin })
-	elseif show then
-		APG.notify("Unfrozen props ghosted !", {})
-	end
-	APG.log("[APG] Unfrozen props ghosted !")
-end
-
-function APG.freezeProps( show, adminsOnly)
-	for _, v in next, ents.GetAll() do
-		if not APG.isBadEnt(v) or not APG.getOwner( v ) then continue end
-		    local physObj = v:GetPhysicsObject()
-            if IsValid(physObj) then
-            	physObj:EnableMotion(false)
-            	v.APG_Frozen = true
-            end
+    for _, v in next, ents.GetAll() do
+        if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() then continue end
+        if mode == "unfrozen" and not v.APG_Frozen then
+            continue
+        else
+            v:Remove()
         end
     end
     if show and adminsOnly then
-		APG.notify("Props frozen !", { admin, superadmin })
-	elseif show then
-		APG.notify("Props frozen !", {})
-	end
-	APG.log("[APG] Props frozen") 
+        APG.notify("Cleaned Up !", { admin, superadmin })
+    elseif show then
+        APG.notify("Cleaned Up !", {})
+    end
+    APG.log("[APG] Cleaned up (mode:" .. mode )
+end
+
+function APG.ghostThemAll( show, adminsOnly )
+    if not APG.modules[ mod ] then
+        return APG.log("[APG] Warning : Tried to ghost props but ghosting is disabled !")
+    end
+    for _, v in next, ents.GetAll() do
+        if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or v.APG_Frozen then continue end
+        APG.entGhost( v )
+    end
+    if show and adminsOnly then
+        APG.notify("Unfrozen props ghosted !", { admin, superadmin })
+    elseif show then
+        APG.notify("Unfrozen props ghosted !", {})
+    end
+    APG.log("[APG] Unfrozen props ghosted !")
+end
+
+function APG.freezeProps( show, adminsOnly)
+    for _, v in next, ents.GetAll() do
+        if not APG.isBadEnt(v) or not APG.getOwner( v ) then continue end
+        local physObj = v:GetPhysicsObject()
+        if IsValid(physObj) then
+            physObj:EnableMotion(false)
+            v.APG_Frozen = true
+        end
+    end
+    if show and adminsOnly then
+        APG.notify("Props frozen !", { admin, superadmin })
+    elseif show then
+        APG.notify("Props frozen !", {})
+    end
+    APG.log("[APG] Props frozen")
 end
 
 

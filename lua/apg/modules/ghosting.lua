@@ -34,8 +34,8 @@ function ENT:SetCollisionGroup( group )
             if not self.APG_Frozen then
                 group = COLLISION_GROUP_INTERACTIVE
             end
-        elseif group == COLLISION_GROUP_INTERACTIVE and APG.isTrap(ent) then
-            group = COLLISION_GROUP_DEBRIS_TRIGGER
+--[[        elseif group == COLLISION_GROUP_INTERACTIVE and APG.isTrap( self ) then
+            group = COLLISION_GROUP_DEBRIS_TRIGGER --]]
         end
     end
     return APG.oSetColGroup( self, group )
@@ -126,6 +126,34 @@ function APG.ConstrainApply( ent, callback )
     end
 end
 
+--[[------------------------------------------
+        Delayed unghost; spam protection
+]]--------------------------------------------
+
+local toUnGhost = {}
+local processing = false
+local delay, pLimit = 0, 1, 20
+
+function APG_delayUnGhost()
+    if processing then return end
+    processing = true
+    local total = #toUnGhost
+    local count = math.Clamp(total,0,pLimit)
+    for i = 1, count do
+        local ent = toUnGhost[1]
+        timer.Create( "delayUnGhost_" .. i , ( i - 1 ) * delay , 1, function()
+            if not IsValid( ent ) then return end
+            APG.entUnGhost( ent )
+        end)
+        table.remove(toUnGhost, 1)
+    end
+    if not timer.Exists( "dUnGhost_reload") then
+        timer.Create("dUnGhost_reload", ( count * delay ) + 0.1, 1, function() if #toUnGhost > 0 then APG_delayUnGhost() end end)
+    end
+    timer.Create("dUnGhost_process", ( count * delay ), 1, function() processing = false end)
+end
+
+
 APG.hookAdd( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
@@ -153,7 +181,8 @@ APG.hookAdd( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     APG.entUnGhost( ent )
     APG.ConstrainApply( ent, function( _ent )
-        APG.entUnGhost( _ent )
+        table.insert( toUnGhost, _ent )
+        APG_delayUnGhost()
     end) -- Apply unghost to all constrained ents
 end)
 

@@ -185,7 +185,7 @@ function APG.log( msg, ply)
 end
 
 --[[--------------------
-    Admin utility
+    APG job manager
 ]]----------------------
 local toProcess = {}
 function APG.dJobRegister( job, delay, limit, func )

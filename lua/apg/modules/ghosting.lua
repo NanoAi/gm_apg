@@ -19,6 +19,7 @@ local mod = "ghosting"
                 ["wire_"] = false,
                 ["gmod_"] = false },
             desc = "Entities to ghost/control/secure"}
+        alwaysFrozen = { value = false, desc = "Props stay frozen on physgun drop"}
 
 ]]--------------------------------------------
 
@@ -77,7 +78,7 @@ end
 
 function APG.entGhost( ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-
+    if ent.FPPAntiSpamIsGhosted then FPP.UnGhost(nil, ent) end
     if not ent.APG_Ghosted then
         ent.APG_shouldUGhost = false
         ent.APG_oColGroup = ent:GetCollisionGroup()
@@ -103,6 +104,8 @@ function APG.entUnGhost( ent, ply )
             ent:DrawShadow(true)
             ent:SetColor( ent.APG_oldColor or Color(255,255,255,255))
             ent.APG_oldColor = false
+
+            if APG.cfg["alwaysFrozen"].value == true then return APG.freezeIt(ent) end
 
             local newColGroup = COLLISION_GROUP_INTERACTIVE
             if ent.APG_oColGroup == COLLISION_GROUP_WORLD then
@@ -149,6 +152,7 @@ end)
 APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    if APG.cfg["alwaysFrozen"].value == true then return false end
     if ent:GetCollisionGroup( ) != COLLISION_GROUP_WORLD then
         ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
     end
@@ -170,6 +174,7 @@ end)
 
 APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    if APG.cfg["alwaysFrozen"].value == true then APG.freezeIt( ent ) end
     timer.Simple( 0 , function()
         if not IsValid( ent ) then return end
         local owner = APG.getOwner( ent )

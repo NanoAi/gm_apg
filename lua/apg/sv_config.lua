@@ -31,7 +31,9 @@ defaultSettings.cfg = {
             ["prop_physics"] = true,
             ["wire_"] = false,
             ["gmod_"] = false },
-        desc = "Entities to ghost/control/secure"},
+        desc = "Entities to ghost/control/secure"
+    },
+    alwaysFrozen = { value = false, desc = "Props stay frozen on physgun drop"},
 
     --[[----------
         Stack detection module
@@ -39,13 +41,12 @@ defaultSettings.cfg = {
     stackMax = { value = 20, desc = "Max amount of entities stacked on a small area"},
     stackArea = { value = 15, desc = "Sphere radius for stack detection (gmod units)"},
 
-
     --[[----------
         Lag detection module
     ]]------------
 
-    lagTrigger = { value = 75, desc = "% difference between current lag and average lag."},
-    lagsCount = { value = 8, desc = "Number of consectuives laggy frames in order to run a cleanup."},
+    lagTrigger = { value = 75, desc = "% difference between current lag and average lag to trigger cleanup"},
+    lagsCount = { value = 8, desc = "Number of consecutives laggy frames in order to run a cleanup."},
     bigLag = { value = 2, desc = "Time (seconds) between 2 frames to trigger a cleanup"},
     lagFunc = { value = "cleanUp_unfrozen", desc = "Function ran on lag detected" },
     lagFuncTime = { value = 20, desc = "Time (seconds) between 2 cleanup (avoid spam)"},

@@ -48,10 +48,7 @@ end
 function draw.APGCheckB( x, y, on )
     draw.RoundedBox(10,x,y,45,18,Color( 58, 58, 58, 255))
     if on then
-        draw.DrawText( "ON", "APG_title_font",x + 8, y + 2, Color( 189, 189, 189), 3 )
-        draw.RoundedBox(10,x + 27,y,18,18,Color( 88, 88, 88, 255))
     else
-        draw.DrawText( "OFF", "APG_title_font",x + 21, y + 2, Color( 189, 189, 189), 3 )
         draw.RoundedBox(10,x,y,18,18,Color( 88, 88, 88, 255))
     end
 end
@@ -59,8 +56,6 @@ end
 local main_color = Color(32, 255, 0,255)
 local function openMenu( )
     local APG_Main = vgui.Create( "DFrame" )
-        APG_Main:SetSize( 700 , 400)
-        APG_Main:SetPos( ScrW() / 2 - APG_Main:GetWide() / 2, ScrH() / 2 - APG_Main:GetTall() / 2)
         APG_Main:SetTitle( "" )
         APG_Main:SetVisible( true )
         APG_Main:SetDraggable( true )
@@ -80,7 +75,6 @@ local function openMenu( )
             APG_Main:Remove()
         end
         closeButton.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color(255, 255, 255,2))
             draw.DrawText( "✕", "APG_sideBar_font",0, -2, Color( 189, 189, 189), 3 )
         end
     local saveButton = vgui.Create("DButton",APG_Main)
@@ -92,12 +86,9 @@ local function openMenu( )
             APG_Main:Remove()
         end
         saveButton.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color(255, 255, 255,2))
-            draw.DrawText( "Save settings", "APG_title2_font",w / 2, 1, Color( 189, 189, 189), 1 )
         end
     -- Side bar
     local sidebar = vgui.Create("DPanel",APG_Main)
-        sidebar:SetSize( APG_Main:GetWide() / 5 , APG_Main:GetTall() - 35)
         sidebar:SetPos(0,30)
         sidebar.Paint = function(i,w,h)
             draw.RoundedBox(0,0,0,w,h,Color( 33, 33, 33,255))
@@ -124,7 +115,6 @@ local function openMenu( )
             end
             button.Paint = function(slf, w, h)
                 local enabled = APG.modules[k]
-                draw.RoundedBox(0,0,0,w,h,Color( 38, 38, 38, 255))
                 local text = getNiceName(k) .. " module "
                 draw.DrawText( text, "APG_mainPanel_font",5, 8, Color( 189, 189, 189), 3 )
                 draw.APGCheckB( w-48, 7.5, enabled )
@@ -159,12 +149,8 @@ local function openMenu( )
             end
             if APG.panels[k]:IsVisible()  then
                 draw.RoundedBox(0,0,0,w,h,Color( 36, 36,36, 255))
-                draw.RoundedBox(0,w * 0.15 ,( h + 20 ) / 2,w * 0.7,1, Color(0, 96, 0,255))
             end
 
-
-            draw.DrawText( name, "APG_sideBar_font",(size - name:len()) / 2, 25, Color( 189, 189, 189), 1 )
         end
         i = i + 1
     end
-end

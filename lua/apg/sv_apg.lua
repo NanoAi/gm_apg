@@ -46,6 +46,13 @@ function APG.getOwner( ent )
     return owner
 end
 
+function APG.freezeIt(ent)
+    local physObj = ent:GetPhysicsObject()
+    if IsValid(physObj) then
+        physObj:EnableMotion(false)
+        ent.APG_Frozen = true
+    end
+end
 function APG.cleanUp ( mode, show, adminsOnly )
     for _, v in next, ents.GetAll() do
         if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() then continue end
@@ -82,11 +89,7 @@ end
 function APG.freezeProps( show, adminsOnly)
     for _, v in next, ents.GetAll() do
         if not APG.isBadEnt(v) or not APG.getOwner( v ) then continue end
-        local physObj = v:GetPhysicsObject()
-        if IsValid(physObj) then
-            physObj:EnableMotion(false)
-            v.APG_Frozen = true
-        end
+        APG.freezeIt(v)
     end
     if show and adminsOnly then
         APG.notify("Props frozen !", { admin, superadmin })

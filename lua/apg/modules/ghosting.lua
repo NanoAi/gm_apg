@@ -59,7 +59,7 @@ function APG.isTrap( ent )
     local center = ent:LocalToWorld(ent:OBBCenter())
 
     for _,v in next, ents.FindInSphere(center, ent:BoundingRadius()) do
-        if v:IsPlayer() and v:Alive() then
+        if v:IsVehicle() or (v:IsPlayer() and v:Alive()) then
             local pos = v:GetPos()
             local trace = { start = pos, endpos = pos, filter = v }
             local tr = util.TraceEntity( trace, v )

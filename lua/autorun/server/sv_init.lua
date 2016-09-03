@@ -87,3 +87,8 @@ concommand.Add("apg", function( ply, cmd, args, argStr )
         APG.log( ply, "Error : unknown setting")
     end
 end)
+
+--[[------------------------------------------
+            Menu related
+]]--------------------------------------------
+include( "apg/sv_menu.lua" )

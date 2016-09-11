@@ -71,7 +71,7 @@ APG.timerCreate("lag_detection", "APG_process", 5, 0, function()
         end
 
         curAvg = APG.process( tickTable )
-        trigValue = curAvg * (100 + APG.cfg["lagTrigger"].value)/100
+        trigValue = curAvg * ( 1 + APG.cfg["lagTrigger"].value / 100 )
     end
 end)
 

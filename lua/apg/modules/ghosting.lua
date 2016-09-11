@@ -1,9 +1,11 @@
-local mod = "ghosting"
-
 --[[------------------------------------------
 
     A.P.G. - a lightweight Anti Prop Griefing solution (v{{ script_version_name }})
-    Made by While True (http://steamcommunity.com/id/while_true/) and LuaTenshi (http://steamcommunity.com/id/BoopYoureDead/)
+    Made by :
+    - While True (http://steamcommunity.com/id/76561197972967270)
+    - LuaTenshi (http://steamcommunity.com/id/76561198096713277)
+
+    Licensed to : http://steamcommunity.com/id/{{ user_id }}
 
     ============================
      GHOSTING/UNGHOSTING MODULE
@@ -19,14 +21,13 @@ local mod = "ghosting"
                 ["wire_"] = false,
                 ["gmod_"] = false },
             desc = "Entities to ghost/control/secure"}
-        alwaysFrozen = { value = false, desc = "Props stay frozen on physgun drop"}
+        alwaysFrozen = { value = false, desc = "Set to true to auto freeze props on physgun drop" }
 
 ]]--------------------------------------------
-
+local mod = "ghosting"
 --[[------------------------------------------
         Override base functions
 ]]--------------------------------------------
-
 local ENT = FindMetaTable( "Entity" )
 APG.oSetColGroup = APG.oSetColGroup or ENT.SetCollisionGroup
 function ENT:SetCollisionGroup( group )
@@ -60,7 +61,7 @@ function APG.isTrap( ent )
     local center = ent:LocalToWorld(ent:OBBCenter())
 
     for _,v in next, ents.FindInSphere(center, ent:BoundingRadius()) do
-        if v:IsVehicle() or (v:IsPlayer() and v:Alive()) then
+        if (v:IsPlayer() and v:Alive()) then
             local pos = v:GetPos()
             local trace = { start = pos, endpos = pos, filter = v }
             local tr = util.TraceEntity( trace, v )
@@ -70,42 +71,66 @@ function APG.isTrap( ent )
             end
 
             if check then break end
+        elseif v:IsVehicle() then
+            -- to do
         end
     end
 
     return check or false
 end
 
-function APG.entGhost( ent )
+function APG.entGhost( ent, enforce, noCollide )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-    if ent.FPPAntiSpamIsGhosted then FPP.UnGhost(nil, ent) end
+
     if not ent.APG_Ghosted then
-        ent.APG_shouldUGhost = false
+        ent.FPPAntiSpamIsGhosted = nil -- Override FPP Ghosting.
+
         ent.APG_oColGroup = ent:GetCollisionGroup()
+
+        if not enforce then
+            -- If and old collision group was set get it.
+            if ent.OldCollisionGroup then ent.APG_oColGroup = ent.OldCollisionGroup end -- For FPP
+            if ent.DPP_oldCollision then ent.APG_oColGroup = ent.DPP_oldCollision end -- For DPP
+
+            ent.OldCollisionGroup = nil
+            ent.DPP_oldCollision = nil
+        end
+
         ent.APG_Ghosted = true
 
         if not ent.APG_oldColor then
             ent.APG_oldColor = ent:GetColor()
+            if not enforce then
+                if ent.OldColor then ent.APG_oldColor = ent.OldColor end -- For FPP
+                if ent.__DPPColor then ent.APG_oldColor = ent.__DPPColor end -- For DPP
+
+                ent.OldColor = nil
+                ent.__DPPColor = nil
+            end
         end
 
         ent:SetRenderMode(RENDERMODE_TRANSALPHA)
         ent:DrawShadow(false)
         ent:SetColor( APG.cfg["ghost_color"].value )
-        ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
+        if noCollide then
+            ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+        else
+            ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
+        end
     end
 end
 
 function APG.entUnGhost( ent, ply )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-    if ent.APG_Ghosted then
+    if ent.APG_HeldBy and #ent.APG_HeldBy > 1 then return end
+
+    if ent.APG_Ghosted and not ent.APG_Picked then
         ent.APG_isTrap = APG.isTrap(ent)
         if not ent.APG_isTrap then
             ent.APG_Ghosted  = false
             ent:DrawShadow(true)
             ent:SetColor( ent.APG_oldColor or Color(255,255,255,255))
             ent.APG_oldColor = false
-
-            if APG.cfg["alwaysFrozen"].value == true then return APG.freezeIt(ent) end
 
             local newColGroup = COLLISION_GROUP_INTERACTIVE
             if ent.APG_oColGroup == COLLISION_GROUP_WORLD then
@@ -115,7 +140,7 @@ function APG.entUnGhost( ent, ply )
             end
             ent:SetCollisionGroup( newColGroup )
         else
-            APG.notify( "There is something in this prop !", { ply } )
+            APG.log( "There is something in this prop !", ply )
             ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
         end
     end
@@ -137,50 +162,56 @@ end
 APG.hookAdd( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-    if ent:IsPlayerHolding() and not ply:IsAdmin() then return false end -- Blocks two people from holding the same prop
+    ent.APG_Picked = true
 
     APG.entGhost(ent)
 
     APG.ConstrainApply( ent, function( _ent )
         if not _ent.APG_Frozen then
+            _ent.APG_Picked = true
             APG.entGhost( _ent )
         end
     end) -- Apply ghost to all constrained ents
-
 end)
 
 APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-    if APG.cfg["alwaysFrozen"].value == true then return false end
+    if APG.cfg["alwaysFrozen"].value then return false end -- Do not unfreeze if Always Frozen is enabled !
     if ent:GetCollisionGroup( ) != COLLISION_GROUP_WORLD then
         ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
     end
 end)
 
 APG.dJobRegister( "unghost", 0.1, 20, function( ent )
-    if not IsValid( ent ) or not ent.APG_shouldUGhost then return end
+    if not IsValid( ent ) then return end
     APG.entUnGhost( ent )
 end)
 
 APG.hookAdd( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    ent.APG_Picked = false
+
+    if APG.cfg["alwaysFrozen"].value then
+        APG.freezeIt( ent )
+    end
     APG.entUnGhost( ent )
     APG.ConstrainApply( ent, function( _ent )
-        _ent.APG_shouldUGhost = true
+        _ent.APG_Picked = false
         APG.startDJob( "unghost", _ent )
     end) -- Apply unghost to all constrained ents
 end)
 
 APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-    if APG.cfg["alwaysFrozen"].value == true then APG.freezeIt( ent ) end
-    timer.Simple( 0 , function()
+    timer.Simple(0, function()
         if not IsValid( ent ) then return end
         local owner = APG.getOwner( ent )
         if IsValid( owner ) and owner:IsPlayer() then
             local pObj = ent:GetPhysicsObject()
-            if IsValid(pObj) and pObj:IsMoveable() then
+            if IsValid(pObj) and APG.cfg["alwaysFrozen"].value then
+                pObj:EnableMotion( false)
+            elseif IsValid(pObj) and pObj:IsMoveable() then
                 ent.APG_Frozen = false
                 ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
             else
@@ -188,5 +219,13 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
                 ent:SetCollisionGroup( COLLISION_GROUP_NONE )
             end
         end
+    end)
+    timer.Simple(0.03, function()
+        if ent.FPPAntiSpamIsGhosted then
+            DropEntityIfHeld(ent)
+            ent:ForcePlayerDrop()
+        end
+        APG.entGhost( ent )
+        APG.startDJob( "unghost", ent )
     end)
 end)

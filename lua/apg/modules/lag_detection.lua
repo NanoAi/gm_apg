@@ -1,9 +1,12 @@
-local mod = "lag_detection"
-
 --[[------------------------------------------
 
     A.P.G. - a lightweight Anti Prop Griefing solution (v{{ script_version_name }})
-    Made by While True (http://steamcommunity.com/id/while_true/) and LuaTenshi (http://steamcommunity.com/id/BoopYoureDead/)
+    Made by :
+    - While True (http://steamcommunity.com/id/76561197972967270)
+    - LuaTenshi (http://steamcommunity.com/id/76561198096713277)
+
+    Licensed to : http://steamcommunity.com/id/{{ user_id }}
+
 
     ============================
         LAG DETECTION MODULE
@@ -23,6 +26,22 @@ local mod = "lag_detection"
         Example : hook.Add( "APG_lagDetected", "myLagDetectHook", function() print("[APG] Lag detected (printed from my very own hook)")  end)
 
 ]]--------------------------------------------
+local mod = "lag_detection"
+
+--[[--------------------
+    Lag fixing functions
+]]----------------------
+-- cleanup_all
+-- cleanup_unfrozen
+-- ghost_unfrozen
+-- freeze_unfrozen
+-- custom_function
+local lagFix = {}
+lagFix.cleanup_all = function( notify ) APG.cleanUp( "all", notify ) end
+lagFix.cleanup_unfrozen = function( notify ) APG.cleanUp( "unfrozen", notify ) end
+lagFix.ghost_unfrozen = APG.ghostThemAll
+lagFix.freeze_unfrozen = APG.freezeProps
+lagFix.custom_function = APG.customFunc
 
 --[[--------------------
         Utils
@@ -52,17 +71,16 @@ APG.timerCreate("lag_detection", "APG_process", 5, 0, function()
         end
 
         curAvg = APG.process( tickTable )
-        trigValue = curAvg * APG.cfg["lagTrigger"].value
+        trigValue = curAvg * (100 + APG.cfg["lagTrigger"].value)/100
     end
 end)
 
 APG.hookAdd( "lag_detection", "APG_lagDetected", "APG_lagDetected_id", function()
+    if not APG then return end -- This will stop error spam.
     local func = APG.cfg["lagFunc"].value
-    if isstring(func) then
-        APG[ func ]()
-    else
-        func()
-    end
+    local notify = APG.cfg["lagFuncNotify"].value
+    if not lagFix[ func ] then return end
+    lagFix[ func ]( notify )
 end)
 
 
@@ -78,9 +96,10 @@ APG.hookAdd( "lag_detection", "Think", "APG_detectLag", function()
         if (lagCount >= APG.cfg["lagsCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
             lagCount = 0
             if not pause then
-                hook.Run( "APG_lagDetected" )
                 pause = true
-                timer.Simple( APG.cfg["lagSpamTime"].value, function() pause = false end)
+                timer.Simple( APG.cfg["lagFuncTime"].value, function() pause = false end)
+                APG.log( "[APG] WARNING LAG DETECTED : Running lag fix function")
+                hook.Run( "APG_lagDetected" )
             end
         end
     else
@@ -92,7 +111,6 @@ end)
 --[[--------------------
         To replace in UI
 ]]----------------------
-
 concommand.Add( "APG_showLag", function(ply, cmd, arg)
     if IsValid(ply) and not ply:IsAdmin() then return end
     local lastShow = SysTime()

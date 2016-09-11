@@ -1,17 +1,27 @@
 --[[------------------------------------------
             INITIALIZE APG
 ]]--------------------------------------------
-APG = APG or {}
+APG = {}
 APG.modules =  APG.modules or {}
+
+--[[------------------------------------------
+            CLIENT related
+]]--------------------------------------------
+AddCSLuaFile("apg/sh_config.lua")
+AddCSLuaFile("apg/cl_utils.lua")
+AddCSLuaFile("apg/cl_menu.lua")
+
 --[[------------------------------------------
             REGISTER Modules
 ]]--------------------------------------------
-include( "apg/sv_apg.lua")
 local modules, _ = file.Find("apg/modules/*.lua","LUA")
 for _,v in next, modules do
     if v then
         niceName = string.gsub(tostring(v),"%.lua","")
         APG.modules[ niceName ] = false
+        APG[ niceName ] = {}
+        APG[ niceName ][ "hooks"] = {}
+        APG[ niceName ][ "timers"] = {}
     end
 end
 
@@ -27,7 +37,7 @@ function APG.timerCreate( module, identifier, delay, repetitions, func )
 end
 
 function APG.load( module )
-    if not APG.modules[ module ] and APG.modules[ module ] == nil then return end
+    APG.unLoad( module )
     APG.modules[ module ] = true
     APG[ module ] = {}
     APG[ module ][ "hooks"] = {}
@@ -36,24 +46,41 @@ function APG.load( module )
 end
 
 function APG.unLoad( module )
-    if not APG.modules[ module ] then return end
     APG.modules[ module ] = false
     local hooks = APG[ module ]["hooks"]
-    for k, v in next, hooks do
-        hook.Remove(k, v)
+    if hooks then
+        for k, v in next, hooks do
+            hook.Remove(k, v)
+        end
+        table.Empty(APG[ module ][ "hooks"])
     end
     local timers = APG[ module ]["timers"]
-    for k, v in next, timers do
-        timer.Remove(v)
+    if timers then
+        for k, v in next, timers do
+            timer.Remove(v)
+        end
+        table.Empty(APG[ module ][ "timers"])
     end
-    table.Empty(APG[ module ][ "hooks"])
-    table.Empty(APG[ module ][ "timers"])
+end
+
+function APG.reload( )
+    for k, v in next, APG.modules do
+        if APG.modules[k] == true then
+            APG.load( k )
+        else
+            APG.unLoad( k )
+        end
+    end
 end
 --[[------------------------------------------
-            LOADING Settings
+            LOADING
 ]]--------------------------------------------
-include( "apg/sv_config.lua" )
-
+-- Loading config first
+include( "apg/sh_config.lua" )
+-- Loading APG main functions
+include( "apg/sv_apg.lua") -- Modules loaded at the bottom
+-- Loading APG menu
+include( "apg/sv_menu.lua" )
 --[[------------------------------------------
             CVars INIT
 ]]--------------------------------------------
@@ -66,29 +93,23 @@ concommand.Add("apg", function( ply, cmd, args, argStr )
         if _module != nil then
             if _module == true then
                 APG.unLoad( args[2] )
-                APG.log( ply, "[APG] Module " .. args[2] .. " disabled.")
+                APG.log( "[APG] Module " .. args[2] .. " disabled.", ply)
             else
                 APG.load( args[2] )
-                APG.log( ply, "[APG] Module " .. args[2] .. " enabled.")
+                APG.log( "[APG] Module " .. args[2] .. " enabled.", ply)
             end
         else
-            APG.log( ply, "[APG] This module does not exists")
+            APG.log( "[APG] This module does not exist", ply)
         end
 
     elseif args[1] == "help" then
         local cfg = APG.cfg[ args[2] ]
         if cfg then
-            APG.log( ply, cfg.desc)
+            APG.log( cfg.desc, ply)
         else
-            APG.log( ply, "[APG] Help : This setting does not exists")
+            APG.log( "[APG] Help : This setting does not exist", ply)
         end
     else
-        APG.notify(ply, "Error : unknown setting", NOTIFY_ERROR, 3.5, 1)
         APG.log( ply, "Error : unknown setting")
     end
 end)
-
---[[------------------------------------------
-            Menu related
-]]--------------------------------------------
-include( "apg/sv_menu.lua" )

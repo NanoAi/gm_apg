@@ -1,131 +1,48 @@
-local APG = {}
+APG_panels = APG_panels or {}
 
-APG.modules = {
-    ["ghosting"] = true,
-    ["stack_detection"] = true,
-    ["lag_detection"] = true,
-    ["misc"] = true,
-    ["method0"] = false
-}
-APG.cfg = {
-    ghost_color = { value = Color(34, 34, 34, 220), desc = "Color set on ghosted props" },
-    bad_ents = {
-        value = {
-            ["prop_physics"] = true,
-            ["wire_"] = false,
-            ["gmod_"] = false },
-        desc = "Entities to ghost/control/secure"
-    },
-    alwaysFrozen = { value = false, desc = "Props stay frozen on physgun drop"}
-}
-APG.panels = { }
+local utils = include( "cl_utils.lua" ) or { }
 
-surface.CreateFont( "APG_title_font", {
-    font = "Arial",
-    size = 14,
-    weight = 700,
-} )
-
-surface.CreateFont( "APG_title2_font", {
-    font = "Arial",
-    size = 13,
-    weight = 700,
-} )
-
-surface.CreateFont( "APG_sideBar_font", {
-    font = "Arial",
-    size = 18,
-    weight = 1500,
-} )
-
-surface.CreateFont( "APG_mainPanel_font", {
-    font = "Arial",
-    size = 19,
-    weight = 8500,
-} )
-
-surface.CreateFont( "APG_tick_font", {
-    font = "Arial",
-    size = 29,
-    weight = 1900,
-} )
-
-surface.CreateFont( "APG_element_font", {
-    font = "Arial",
-    size = 17,
-    weight = 1300,
-} )
-
-surface.CreateFont( "APG_element2_font", {
-    font = "Arial",
-    size = 17,
-    weight = 2900,
-} )
-
-local function addBadEntity( class )
-    local found = false
-    for k, v in pairs ( ents.GetAll() ) do
-        if class == v:GetClass() then
-            found = true
-            break
+local function APGBuildStackPanel()
+    local panel = APG_panels["stack_detection"]
+        panel.Paint = function( i, w, h)
         end
-    end
-    if not found then
-        for k in pairs (scripted_ents.GetList()) do
-            if class == k then
-                found = true
-                break
-            end
-        end
-    end
-    APG.cfg["bad_ents"].value[ class ] = found
-end
-local function getNiceName( str )
-    local nName = string.gsub(str,"^%l",string.upper)
-    nName = string.gsub(nName,"_", " " )
-    return nName
+    utils.numSlider(panel, 0, 40, 500, 20, "Maximum stacked ents", "stackMax", 3, 50, 0 )
+    utils.numSlider(panel, 0, 75, 500, 20, "Stack distance (gmod units)", "stackArea", 5, 50, 0)
 end
 
-function draw.APGCheckB( x, y, on )
-    draw.RoundedBox(10,x,y,45,18,Color( 58, 58, 58, 255))
-    if on then
-        draw.RoundedBox(10,x+1,y+1,45-2,18-2,Color( 11,70,30, 255))
-        draw.DrawText( "ON", "APG_title_font",x+8, y+2, Color( 189, 189, 189 ), 3 )
-        draw.RoundedBox(10,x+27,y,18,18,Color( 88, 88, 88, 255))
-    else
-        --draw.RoundedBox(10,x,y,45,18,Color( 110, 28, 38, 255))
-        draw.RoundedBox(10,x+1,y+1,43,16,Color( 34, 34, 34, 255))
-        draw.DrawText( "OFF", "APG_title_font",x+21, y+2, Color( 189, 189, 189), 3 )
-        draw.RoundedBox(10,x,y,18,18,Color( 88, 88, 88, 255))
-    end
-    --draw.RoundedBox(0,x+20,y,1,18,Color( 88, 88, 88, 255))
+local function APGBuildMiscPanel()
+    local panel = APG_panels["misc"]
+        panel.Paint = function( i, w, h)
+        end
+    utils.switch( panel, 0, 40, 395, 20, "Auto freeze over time", "autoFreeze" )
+    utils.numSlider(panel, 0, 70, 500, 20, "Auto freeze delay(seconds)", "autoFreezeTime", 5, 600, 0 )
+    --APG_numSlider(panel, 0, 75, 500, 20, "Vehicle NoCollide", "vehNoCollide", 5, 50, 0)
 end
 
-function APG_Button( panel, x, y, w, h, text, var )
-    local button = vgui.Create("DButton",panel)
-        button:SetPos(x,y)
-        button:SetSize(w,h)
-        button:SetText("")
-        button.Paint = function(slf, w , h )
-            local enabled = APG.cfg[ var ].value
-                draw.RoundedBox(0,0,h * 0.95,w-5,1, Color(250, 250, 250,1))
-                draw.DrawText( text, "APG_element2_font",0, 0, Color( 189, 189, 189), 3 )
-                draw.APGCheckB( w-45, 0, enabled )
+local function APGBuildLagPanel()
+    local panel = APG_panels["lag_detection"]
+        panel.Paint = function( i, w, h)
         end
-        button.DoClick = function()
-            APG.cfg[ var ].value = not APG.cfg[ var ].value
-        end
+
+    utils.numSlider(panel, 0, 40, 500, 20, "Trigger lag ", "lagTrigger", 5, 1000, 0 )
+    utils.numSlider(panel, 0, 75, 500, 20, "Frames lost", "lagsCount", 1, 20, 0)
+    utils.numSlider(panel, 0, 110, 500, 20, "Heavy lag trigger (seconds)", "bigLag", 1, 10, 1)
+    utils.comboBox(panel, 0, 145, 500, 20, "Anti lag function", "lagFunc", APG_lagFuncs)
+    utils.numSlider(panel, 0, 180, 500, 20, "Lag func. delay (seconds)", "lagFuncTime", 1, 300, 0)
+    utils.numSlider(panel, 0, 215, 500, 20, "Notification mode", "lagFuncNotify", 0, 2, 0)
+
 end
 
 local function APGBuildGhostPanel()
-    local panel = APG.panels["ghosting"]
+    local panel = APG_panels["ghosting"]
         panel.Paint = function( i, w, h)
             draw.RoundedBox(0,0,37,170,135,Color( 38, 38, 38, 255))
             draw.DrawText( "Ghosting color :", "APG_element_font",5, 37, Color( 189, 189, 189), 3 )
+
             draw.RoundedBox(0,175,37,250,250,Color( 38, 38, 38, 255))
             draw.DrawText( "Bad entities :", "APG_element_font",180, 37, Color( 189, 189, 189), 3 )
         end
-    APG_Button( panel, 0, 180, 170, 20, "Always frozen", "alwaysFrozen" )
+    utils.switch( panel, 0, 180, 170, 20, "Always frozen", "alwaysFrozen" )
 
     local Mixer = vgui.Create( "CtrlColor", panel )
     Mixer:SetPos(5,55)
@@ -137,7 +54,7 @@ local function APGBuildGhostPanel()
     local dList = vgui.Create("DListView", panel)
         dList:Clear()
         dList:SetPos( 180, 55 )
-        dList:SetSize(panel:GetWide() - 185, panel:GetTall() - 60)
+        dList:SetSize(panel:GetWide() - 185, panel:GetTall()-5-55)
         dList:SetMultiSelect(false)
         dList:SetHideHeaders(false)
         dList:AddColumn("Class")
@@ -150,6 +67,7 @@ local function APGBuildGhostPanel()
             end
         end
         updtTab()
+
         dList.Paint = function(i,w,h)
             draw.RoundedBox(0,0,0,w,h,Color(150, 150, 150, 255))
         end
@@ -181,7 +99,7 @@ local function APGBuildGhostPanel()
         Add:SetText( "Add" )
         Add.DoClick = function()
             if TextEntry:GetValue() == "Entity class" then return end
-            addBadEntity( TextEntry:GetValue() )
+            utils.addBadEntity( TextEntry:GetValue() )
             updtTab()
         end
         Add:SetTextColor(Color(255,255,255))
@@ -209,7 +127,14 @@ end
 
 
 local main_color = Color(32, 255, 0,255)
-local function openMenu( )
+local function openMenu( len )
+    len = net.ReadUInt( 32 )
+    if len == 0 then return end
+    local settings = net.ReadData( len )
+    settings = util.Decompress( settings )
+    settings = util.JSONToTable( settings )
+    table.Merge(APG, settings)
+
     local APG_Main = vgui.Create( "DFrame" )
         APG_Main:SetSize( 550 , 320)
         APG_Main:SetPos( ScrW()/2- APG_Main:GetWide()/2, ScrH()/2 - APG_Main:GetTall()/2)
@@ -219,7 +144,6 @@ local function openMenu( )
         APG_Main:MakePopup()
         APG_Main:ShowCloseButton(false)
         APG_Main.Paint = function(i,w,h)
-
             draw.RoundedBox(4,0,0,w,h,Color(34, 34, 34,255))
             draw.RoundedBox(0,0,23,w,1,main_color)
             local name = "A.P.G. - Anti Prop Griefing Solution"
@@ -241,7 +165,13 @@ local function openMenu( )
         saveButton:SetSize(72,16)
         saveButton:SetText('')
         saveButton.DoClick = function()
-            --Send settings to server
+            local settings = APG
+            settings = util.TableToJSON( settings )
+            settings = util.Compress( settings )
+            net.Start("apg_settings_c2s")
+                net.WriteUInt( settings:len(), 32 ) -- Write the length of the data
+                net.WriteData( settings, settings:len() ) -- Write the data
+            net.SendToServer()
             APG_Main:Remove()
         end
         saveButton.Paint = function(i,w,h)
@@ -265,7 +195,7 @@ local function openMenu( )
         panel:SetPos(px, py)
         panel:SetVisible(first)
         panel.Paint = function() end
-        APG.panels[k] = panel
+        APG_panels[k] = panel
         first = false
 
         local button = vgui.Create("DButton",panel)
@@ -279,9 +209,9 @@ local function openMenu( )
                 local enabled = APG.modules[k]
 
                 draw.RoundedBox(0,0,h*0.85,w-5,1, Color(0, 96, 0,255))
-                local text = getNiceName(k) .. " module "
+                local text = utils.getNiceName(k) .. " module "
                 draw.DrawText( text, "APG_mainPanel_font",5, 8, Color( 189, 189, 189), 3 )
-                draw.APGCheckB( w-48, 7.5, enabled )
+                utils.mainSwitch( w-48, 7.5, enabled )
             end
             button.DoClick = function()
                 APG.modules[k] = not APG.modules[k]
@@ -296,22 +226,22 @@ local function openMenu( )
         button:SetSize(sidebar:GetWide() - 10 ,height)
         button:SetText("")
         button.DoClick = function()
-            for l,m in next, APG.panels do
+            for l,m in next, APG_panels do
                 if k != l then
-                    APG.panels[l]:SetVisible(false)
+                    APG_panels[l]:SetVisible(false)
                 else
-                    APG.panels[l]:SetVisible(true)
+                    APG_panels[l]:SetVisible(true)
                 end
             end
         end
         local size = sidebar:GetWide()
         button.Paint = function(_,w,h)
-            local name = getNiceName(k)
+            local name = utils.getNiceName(k)
             if button.Hovered then
                 draw.RoundedBox(5,0,0,w,h,Color(46, 46, 46,255))
                 draw.RoundedBox(0,2,2,w-4,h-4,Color( 36, 36,36, 255))
             end
-            if APG.panels[k]:IsVisible()  then
+            if APG_panels[k]:IsVisible()  then
                 draw.RoundedBox(0,0,0,w,h,Color( 36, 36,36, 255))
                 draw.RoundedBox(0,w*0.15,h*0.72,w*0.7,1, Color(0, 96, 0,255))
             end
@@ -320,5 +250,10 @@ local function openMenu( )
         end
         i = i + 1
     end
+    APGBuildMiscPanel()
     APGBuildGhostPanel()
+    APGBuildLagPanel()
+    APGBuildStackPanel()
 end
+
+net.Receive( "apg_menu_s2c", openMenu )

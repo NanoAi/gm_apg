@@ -59,8 +59,8 @@ end
 function APG.isTrap( ent )
     local check = false
     local center = ent:LocalToWorld(ent:OBBCenter())
-
-    for _,v in next, ents.FindInSphere(center, ent:BoundingRadius()) do
+    local bRadius = ent:BoundingRadius()
+    for _,v in next, ents.FindInSphere(center, bRadius) do
         if (v:IsPlayer() and v:Alive()) then
             local pos = v:GetPos()
             local trace = { start = pos, endpos = pos, filter = v }
@@ -69,11 +69,14 @@ function APG.isTrap( ent )
             if tr.Entity == ent then
                 check = v
             end
-
-            if check then break end
         elseif v:IsVehicle() then
-            -- to do
+            -- Check if the distance between the spheres centers is less than the sum of their radius.
+            local vCenter = v:LocalToWorld(v:OBBCenter())
+            if center:Distance( vCenter ) < v:BoundingRadius() then
+                check = v
+            end
         end
+        if check then break end
     end
 
     return check or false

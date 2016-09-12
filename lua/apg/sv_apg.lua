@@ -296,15 +296,10 @@ function APG.startDJob( job, content )
 end
 
 --[[--------------------
-    LOADING DRM + MODULES
+    LOADING MODULES
 ]]----------------------
-hook.Add("PlayerConnect", "APG_DRM", function()
-    hook.Remove("PlayerConnect", "APG_DRM")
-    for k, v in next, APG.modules do
-        local id, hash = {{ script_id }}, {{ web_hook "http://scriptenforcer.net/api.php?action=getAuth" "" }}
-        local version, add = "{{ script_version_name }}", ""
-        local mod, filename = k, k..".lua"
-        APG_DRM(scriptid, hash, filename..".lua", version, additional, mod)
+for k, v in next, APG.modules do
+    if v == true then
+        APG.load( k )
     end
-    timer.Simple(30, function() APG.reload() end)
-end)
+end

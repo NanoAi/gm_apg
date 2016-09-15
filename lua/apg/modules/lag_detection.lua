@@ -7,7 +7,6 @@
 
     Licensed to : http://steamcommunity.com/id/{{ user_id }}
 
-
     ============================
         LAG DETECTION MODULE
     ============================
@@ -61,7 +60,7 @@ local trigValue = 10
 local tickTable = {}
 local delta, curAvg, lagCount = 0, 0, 0
 
-APG.timerCreate("lag_detection", "APG_process", 5, 0, function()
+APG.timerRegister("lag_detection", "APG_process", 5, 0, function()
     if not APG.modules[ mod ] then return end
 
     if #tickTable < 60 or delta < trigValue then
@@ -75,7 +74,7 @@ APG.timerCreate("lag_detection", "APG_process", 5, 0, function()
     end
 end)
 
-APG.hookAdd( "lag_detection", "APG_lagDetected", "APG_lagDetected_id", function()
+APG.hookRegister( "lag_detection", "APG_lagDetected", "APG_lagDetected_id", function()
     if not APG then return end -- This will stop error spam.
     local func = APG.cfg["lagFunc"].value
     local notify = APG.cfg["lagFuncNotify"].value
@@ -86,7 +85,8 @@ end)
 
 local pause = false
 local lastThink = SysTime()
-APG.hookAdd( "lag_detection", "Think", "APG_detectLag", function()
+
+APG.hookRegister( "lag_detection", "Think", "APG_detectLag", function()
     if not APG.modules[ mod ] then return end
 
     local curTime = SysTime()
@@ -130,3 +130,14 @@ concommand.Add( "APG_showLag", function(ply, cmd, arg)
         APG.log("[APG] Avg : " .. avg .. " | Max : " .. max, ply )
     end)
 end)
+
+--[[------------------------------------------
+        Load hooks and timers
+]]--------------------------------------------
+for k, v in next, APG[mod]["hooks"] do
+    hook.Add( v.event, v.identifier, v.func )
+end
+
+for k, v in next, APG[mod]["timers"] do
+    timer.Create( v.identifier, v.delay, v.repetitions, v.func )
+end

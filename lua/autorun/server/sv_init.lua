@@ -25,41 +25,30 @@ for _,v in next, modules do
     end
 end
 
-function APG.hookAdd( module, event, identifier, func )
-    local eventTab = APG[ module ][ "hooks"][ event ] or {}
-    table.insert( eventTab, identifier )
-    APG[ module ][ "hooks"][ event ] = eventTab
-    hook.Add( event, identifier, func )
+function APG.hookRegister( module, event, identifier, func )
+    table.insert( APG[ module ][ "hooks"], { event = event, identifier = identifier, func = func })
 end
-function APG.timerCreate( module, identifier, delay, repetitions, func )
-    table.insert( APG[ module ][ "timers"], identifier )
-    timer.Create( identifier, delay, repetitions, func )
+
+function APG.timerRegister( module, identifier, delay, repetitions, func )
+    table.insert( APG[ module ][ "timers"], { identifier = identifier, delay = delay, repetitions = repetitions, func = func } )
 end
+
 
 function APG.load( module )
     APG.unLoad( module )
     APG.modules[ module ] = true
-    APG[ module ] = {}
-    APG[ module ][ "hooks"] = {}
-    APG[ module ][ "timers"] = {}
     include( "apg/modules/" .. module .. ".lua" )
 end
 
 function APG.unLoad( module )
     APG.modules[ module ] = false
     local hooks = APG[ module ]["hooks"]
-    if hooks then
-        for k, v in next, hooks do
-            hook.Remove(k, v)
-        end
-        table.Empty(APG[ module ][ "hooks"])
+    for k, v in next, hooks do
+        hook.Remove(v.event, v.identifier)
     end
     local timers = APG[ module ]["timers"]
-    if timers then
-        for k, v in next, timers do
-            timer.Remove(v)
-        end
-        table.Empty(APG[ module ][ "timers"])
+    for k, v in next, timers do
+        timer.Remove(v.identifier)
     end
 end
 

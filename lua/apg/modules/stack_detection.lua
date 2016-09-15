@@ -48,7 +48,7 @@ function APG.checkStack( ent, pcount )
     end
 end
 
-APG.hookAdd(mod, "PhysgunPickup","APG_stackCheck",function(ply, ent)
+APG.hookRegister(mod, "PhysgunPickup","APG_stackCheck",function(ply, ent)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     APG.checkStack( ent )

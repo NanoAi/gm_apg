@@ -162,7 +162,7 @@ end
         Delayed unghost; spam protection
 ]]--------------------------------------------
 
-APG.hookAdd( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
+APG.hookRegister( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     ent.APG_Picked = true
@@ -177,7 +177,7 @@ APG.hookAdd( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
     end) -- Apply ghost to all constrained ents
 end)
 
-APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
+APG.hookRegister( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
     if not APG.canPhysGun( ent, ply ) then return end
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     if APG.cfg["alwaysFrozen"].value then return false end -- Do not unfreeze if Always Frozen is enabled !
@@ -191,7 +191,7 @@ APG.dJobRegister( "unghost", 0.1, 20, function( ent )
     APG.entUnGhost( ent )
 end)
 
-APG.hookAdd( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
+APG.hookRegister( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     ent.APG_Picked = false
 
@@ -205,7 +205,7 @@ APG.hookAdd( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
     end) -- Apply unghost to all constrained ents
 end)
 
-APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
+APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
     timer.Simple(0, function()
         if not IsValid( ent ) then return end
@@ -232,3 +232,14 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
         APG.startDJob( "unghost", ent )
     end)
 end)
+
+--[[------------------------------------------
+        Load hooks and timers
+]]--------------------------------------------
+for k, v in next, APG[mod]["hooks"] do
+    hook.Add( v.event, v.identifier, v.func )
+end
+
+for k, v in next, APG[mod]["timers"] do
+    timer.Create( v.identifier, v.delay, v.repetitions, v.func )
+end

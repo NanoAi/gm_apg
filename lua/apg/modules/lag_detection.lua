@@ -63,7 +63,7 @@ local delta, curAvg, lagCount = 0, 0, 0
 APG.timerRegister("lag_detection", "APG_process", 5, 0, function()
     if not APG.modules[ mod ] then return end
 
-    if #tickTable < 60 or delta < trigValue then
+    if #tickTable < 12 or delta < trigValue then -- save every values the first minute
         table.insert(tickTable, delta)
         if #tickTable > 60 then
             table.remove(tickTable, 1) -- it will take 300 seconds to fullfill the table.

@@ -159,7 +159,7 @@ function APG.ConstrainApply( ent, callback )
 end
 
 --[[------------------------------------------
-        Delayed unghost; spam protection
+        Hooks/Timers
 ]]--------------------------------------------
 
 APG.hookRegister( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
@@ -186,7 +186,7 @@ APG.hookRegister( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (
     end
 end)
 
-APG.dJobRegister( "unghost", 0.1, 20, function( ent )
+APG.dJobRegister( "unghost", 0.1, 50, function( ent )
     if not IsValid( ent ) then return end
     APG.entUnGhost( ent )
 end)

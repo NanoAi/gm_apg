@@ -56,56 +56,14 @@ function APG.process( tab )
     end
     return sum / (#tab) , max
 end
-local trigValue = 10
-local tickTable = {}
-local delta, curAvg, lagCount = 0, 0, 0
 
-APG.timerRegister("lag_detection", "APG_process", 5, 0, function()
-    if not APG.modules[ mod ] then return end
-
-    if #tickTable < 12 or delta < trigValue then -- save every values the first minute
-        table.insert(tickTable, delta)
-        if #tickTable > 60 then
-            table.remove(tickTable, 1) -- it will take 300 seconds to fullfill the table.
-        end
-
-        curAvg = APG.process( tickTable )
-        trigValue = curAvg * ( 1 + APG.cfg["lagTrigger"].value / 100 )
-    end
-end)
-
-APG.hookRegister( "lag_detection", "APG_lagDetected", "APG_lagDetected_id", function()
-    if not APG then return end -- This will stop error spam.
+hook.Remove("APG_lagDetected", "APG_lagDetected_id") -- Sometimes, I dream about cheese.
+hook.Add("APG_lagDetected", "APG_lagDetected_id", function()
+    if not APG then return end
     local func = APG.cfg["lagFunc"].value
     local notify = APG.cfg["lagFuncNotify"].value
     if not lagFix[ func ] then return end
     lagFix[ func ]( notify )
-end)
-
-
-local pause = false
-local lastThink = SysTime()
-
-APG.hookRegister( "lag_detection", "Think", "APG_detectLag", function()
-    if not APG.modules[ mod ] then return end
-
-    local curTime = SysTime()
-    delta = curTime - lastThink
-    if delta >= trigValue then
-        lagCount = lagCount + 1
-        if (lagCount >= APG.cfg["lagsCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
-            lagCount = 0
-            if not pause then
-                pause = true
-                timer.Simple( APG.cfg["lagFuncTime"].value, function() pause = false end)
-                APG.log( "[APG] WARNING LAG DETECTED : Running lag fix function")
-                hook.Run( "APG_lagDetected" )
-            end
-        end
-    else
-        lagCount = lagCount > 0 and (lagCount - 0.5) or 0
-    end
-    lastThink = curTime
 end)
 
 --[[--------------------
@@ -131,9 +89,65 @@ concommand.Add( "APG_showLag", function(ply, cmd, arg)
     end)
 end)
 
+--[[--------------------
+        Lag detection vars
+]]----------------------
+local trigValue = 10
+local tickTable = {}
+local delta, curAvg, lagCount = 0, 0, 0
+
+
+local pause = false
+local lastThink = SysTime()
+
+function APG.resetLag()
+    trigValue = 10
+    tickTable = {}
+    delta, curAvg, lagCount = 0, 0, 0
+    pause = false
+    lastThink = SysTime()
+end
+
+APG.timerRegister(mod, "APG_process", 5, 0, function()
+    if not APG.modules[ mod ] then return end
+
+    if #tickTable < 12 or delta < trigValue then -- save every values the first minute
+        table.insert(tickTable, delta)
+        if #tickTable > 60 then
+            table.remove(tickTable, 1) -- it will take 300 seconds to fullfill the table.
+        end
+
+        curAvg = APG.process( tickTable )
+        trigValue = curAvg * ( 1 + APG.cfg["lagTrigger"].value / 100 )
+    end
+end)
+
+APG.hookRegister( mod, "Think", "APG_detectLag", function()
+    if not APG.modules[ mod ] then return end
+
+    local curTime = SysTime()
+    delta = curTime - lastThink
+    if delta >= trigValue then
+        lagCount = lagCount + 1
+        if (lagCount >= APG.cfg["lagsCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
+            lagCount = 0
+            if not pause then
+                pause = true
+                timer.Simple( APG.cfg["lagFuncTime"].value, function() pause = false end)
+                APG.log( "[APG] WARNING LAG DETECTED : Running lag fix function")
+                hook.Run( "APG_lagDetected" )
+            end
+        end
+    else
+        lagCount = lagCount > 0 and (lagCount - 0.5) or 0
+    end
+    lastThink = curTime
+end)
+
 --[[------------------------------------------
         Load hooks and timers
 ]]--------------------------------------------
+if APG.resetLag then APG.resetLag() end
 for k, v in next, APG[mod]["hooks"] do
     hook.Add( v.event, v.identifier, v.func )
 end

@@ -1,3 +1,13 @@
+--[[------------------------------------------
+
+    A.P.G. - a lightweight Anti Prop Griefing solution (v{{ script_version_name }})
+    Made by :
+    - While True (http://steamcommunity.com/id/76561197972967270)
+    - LuaTenshi (http://steamcommunity.com/id/76561198096713277)
+
+    Licensed to : http://steamcommunity.com/id/{{ user_id }}
+
+]]--------------------------------------------
 APG_panels = APG_panels or {}
 
 local utils = include( "cl_utils.lua" ) or { }
@@ -16,6 +26,8 @@ local function APGBuildMiscPanel()
         end
     utils.switch( panel, 0, 40, 395, 20, "Auto freeze over time", "autoFreeze" )
     utils.numSlider(panel, 0, 70, 500, 20, "Auto freeze delay(seconds)", "autoFreezeTime", 5, 600, 0 )
+    utils.switch( panel, 0, 100, 395, 20, "Disable vehicle damages", "vehDamage" )
+    utils.switch( panel, 0, 130, 395, 20, "Disable vehicle collisions (with players)", "vehNoCollide" )
     --APG_numSlider(panel, 0, 75, 500, 20, "Vehicle NoCollide", "vehNoCollide", 5, 50, 0)
 end
 

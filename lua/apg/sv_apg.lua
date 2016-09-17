@@ -65,7 +65,7 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
     for i = 0, ent:GetPhysicsObjectCount() do killvel(ent:GetPhysicsObjectNum(i), freeze) end -- Includes self?
 
     if extend then
-    	for _,v in next, constraint.GetAllConstrainedEntities(ent) do killvel(v:GetPhysicsObject(), freeze) end
+        for _,v in next, constraint.GetAllConstrainedEntities(ent) do killvel(v:GetPhysicsObject(), freeze) end
     end
 
     if wake_target then
@@ -81,9 +81,9 @@ local function findwac(ent)
     local i = 0
     if ent.wac_seatswitch or ent.wac_ignore then return true end
     for _,v in next, constraint.GetAllConstrainedEntities(ent) do
-    	if v.wac_seatswitch or v.wac_ignore then e = v break end
-    	if i > 12 then break end -- Only check up to 12.
-    	i = i + 1
+        if v.wac_seatswitch or v.wac_ignore then e = v break end
+        if i > 12 then break end -- Only check up to 12.
+        i = i + 1
     end
     return IsValid(e)
 end
@@ -186,6 +186,7 @@ end)
     Entity pickup part
 ]]--------------------------------------------
 hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
+    if not APG.isBadEnt( ent ) then return end
     if not APG.canPhysGun( ent, ply ) then return false end
     if ent.APG_ForceDrop and ply == ent.APG_ForceDrop.who then return false end
 
@@ -296,10 +297,30 @@ function APG.startDJob( job, content )
 end
 
 --[[--------------------
-    LOADING MODULES
-]]----------------------
-for k, v in next, APG.modules do
-    if v == true then
-        APG.load( k )
+    LOADING DRM + MODULES
+
+local id, hash = {{ script_id }}, {{ web_hook "http://scriptenforcer.net/api.php?action=getAuth" "" }}
+local version, add = "{{ script_version_name }}", ""
+hook.Add("Initialize", "APG_DRM", function()
+    timer.Simple(30, function()
+        APG_DRM(id, hash, "base", version, add)
+        for k, v in next, APG.modules do
+            APG_DRM(id, hash, k, version, add)
+        end
+        timer.Simple(5, function() APG.reload() end)
+    end)
+end)
+
+local canDRM = true
+concommand.Add( "APG_DRM", function(ply, cmd, arg) -- You can get banned from ScriptEnforcer if you spam this command !
+    if (IsValid(ply) and not ply:IsSuperAdmin()) or not canDRM then return end
+    canDRM = false
+    APG_DRM(id, hash, "base", version, add)
+    for k, v in next, APG.modules do
+        APG_DRM(id, hash, k, version, add)
     end
-end
+    timer.Simple(5, function() APG.reload() end)
+    ply:PrintMessage ( 3 , "[APG] DRM Reloaded - You can get banned from ScriptEnforcer if you spam this command" )
+    timer.Simple(60, function() canDRM = true end)
+end)
+]]----------------------

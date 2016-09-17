@@ -20,20 +20,10 @@
         autoFreezeTime = { value = 120, desc = "Auto freeze timer (seconds)"}
 
 ]]--------------------------------------------
-
 local mod = "misc"
 
 --[[--------------------
-    No Collide vehicles on spawn
-]]----------------------
-APG.hookRegister(mod,"PlayerSpawnedVehicle","APG_noCollideVeh",function(ent)
-    if APG.cfg["vehNoCollide"].value then
-        ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-    end
-end)
-
---[[--------------------
-    Disable prop damage
+    Vehicle damage
 ]]----------------------
 local function isVehDamage(dmg,atk,ent)
     if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (IsValid(ent) and (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep")) then
@@ -42,6 +32,20 @@ local function isVehDamage(dmg,atk,ent)
     return false
 end
 
+--[[--------------------
+    No Collide vehicles on spawn
+]]----------------------
+APG.hookRegister(mod,"PlayerSpawnedVehicle","APG_noCollideVeh",function( _ , ent)
+    timer.Simple(0.1, function()
+        if APG.cfg["vehNoCollide"].value then
+            ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        end
+    end)
+end)
+
+--[[--------------------
+    Disable prop damage
+]]----------------------
 APG.hookRegister(mod, "EntityTakeDamage","APG_noPropDmg",function(target, dmg)
     local atk, ent = dmg:GetAttacker(), dmg:GetInflictor()
     if APG.isBadEnt( ent ) or dmg:GetDamageType() == DMG_CRUSH or (APG.cfg["vehDamage"].value and isVehDamage(dmg,atk,ent)) then
@@ -53,7 +57,6 @@ end)
 --[[--------------------
     Auto prop freeze
 ]]----------------------
-
 APG.timerRegister( mod, "APG_autoFreeze", APG.cfg["autoFreezeTime"].value, 0, function()
     if APG.cfg["autoFreeze"].value then
         APG.freezeProps( true )
@@ -70,5 +73,3 @@ end
 for k, v in next, APG[mod]["timers"] do
     timer.Create( v.identifier, v.delay, v.repetitions, v.func )
 end
-
-

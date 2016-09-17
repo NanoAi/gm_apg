@@ -38,7 +38,6 @@ function APG.checkStack( ent, pcount )
             APG.blockPickup( owner )
             APG.log( "[APG] Do not try to crash the server !", ply )
             local msg = "[APG] Warning : " .. owner:Nick() .. " tried to unfreeze a stack of props !"
-            local admins = {}
             for _, v in pairs( player.GetAll()) do
                 if v:IsAdmin() then
                     APG.log( msg, v) -- Need a fancy notification system
@@ -58,10 +57,11 @@ end)
     Stacker Exploit Quick Fix
 ]]----------------------
 hook.Add( "InitPostEntity", "APG_InitStackFix", function()
-    timer.Simple(100, function()
+    timer.Simple(60, function()
         local TOOL = weapons.GetStored("gmod_tool")["Tool"][ "stacker" ]
             or weapons.GetStored("gmod_tool")["Tool"][ "stacker_v2" ]
-        if not TOOL then return end -- Stacker improved (beta) fixed this by setting a maximum of constraints
+        if not TOOL then return end
+    -- Stacker improved (beta) fixed this by setting a maximum of constraints
     -- See : https://github.com/Mista-Tea/improved-stacker/blob/d4f68f7689ee7fed284e97dcb7fe7e9990ebf110/lua/weapons/gmod_tool/stools/stacker_improved.lua#L858
         APG.dJobRegister( "weld", 0.3, 20, function( sents )
             if not IsValid( sents[1] ) or not IsValid( sents[2]) then return end
@@ -73,3 +73,14 @@ hook.Add( "InitPostEntity", "APG_InitStackFix", function()
         end
     end)
 end)
+
+--[[------------------------------------------
+        Load hooks and timers
+]]--------------------------------------------
+for k, v in next, APG[mod]["hooks"] do
+    hook.Add( v.event, v.identifier, v.func )
+end
+
+for k, v in next, APG[mod]["timers"] do
+    timer.Create( v.identifier, v.delay, v.repetitions, v.func )
+end

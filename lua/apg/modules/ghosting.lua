@@ -143,7 +143,7 @@ function APG.entUnGhost( ent, ply )
             end
             ent:SetCollisionGroup( newColGroup )
         else
-            APG.log( "There is something in this prop !", ply )
+            APG.log( "There is something in this prop!", ply )
             ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
         end
     end
@@ -231,6 +231,15 @@ APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
         APG.entGhost( ent )
         APG.startDJob( "unghost", ent )
     end)
+end)
+
+local BlockedProperties = {"collision", "persist", "editentity", "drive", "ignite", "statue"}
+APG.hookRegister(mod, "CanProperty", "APG_canProperty", function(ply, prop, ent)
+    local prop = tostring(prop)
+    if( table.HasValue(BlockedProperties,prop) and ent.APG_Ghosted ) then
+        APG.log("Cannot set "..prop.." properties on ghosted entities!", ply)
+        return false
+    end
 end)
 
 --[[------------------------------------------

@@ -133,9 +133,9 @@ function APG.freezeProps( notify )
 end
 
 function APG.ForcePlayerDrop(ply,ent)
-    ent.APG_ForceDrop = {
+    ent.APG_ForceDrop[ply:SteamID()] = { 
         time = CurTime()+0.1,
-        who = ply
+        who = ply,
     }
 end
 
@@ -161,7 +161,7 @@ end
 
 
 --[[------------------------------------------
-    Player Controll
+    Player Control
 ]]--------------------------------------------
 
 hook.Add("StartCommand", "APG_StartCmd", function(ply, mv) -- Allows to control player events before they happen.
@@ -171,13 +171,15 @@ hook.Add("StartCommand", "APG_StartCmd", function(ply, mv) -- Allows to control 
     if not IsValid(ent) then return end
     if not ent.APG_ForceDrop then return end
 
-    if ent.APG_ForceDrop.time < CurTime() then
-        ent.APG_ForceDrop = nil
+    local ForceDrop = ent.APG_ForceDrop[ply:SteamID() or ""]
+
+    if ForceDrop.time < CurTime() then
+        ForceDrop = nil
         return
     end
 
-    if (bit.band(mv:GetButtons(),IN_ATTACK) > 0) and ent.APG_ForceDrop.time > CurTime() and ent.APG_ForceDrop.who == ply then
-        ent.APG_ForceDrop.time = CurTime()+0.1
+    if (bit.band(mv:GetButtons(),IN_ATTACK) > 0) and ForceDrop.time > CurTime() and ForceDrop.who == ply then
+        ForceDrop.time = CurTime()+0.1
         mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_ATTACK)))
     end
 end)
@@ -188,12 +190,28 @@ end)
 hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
     if not APG.isBadEnt( ent ) then return end
     if not APG.canPhysGun( ent, ply ) then return false end
-    if ent.APG_ForceDrop and ply == ent.APG_ForceDrop.who then return false end
+
+    local steamid = ply and ply.SteamID and ply:SteamID()
+    if ent.APG_ForceDrop[steamid] then return false end
+
+    local HasHolder = (ent.APG_HeldBy and #ent.APG_HeldBy > 0) == true
+    local HeldByLast = ent.APG_HeldBy.last
+
+    if HasHolder then
+        if HeldByLast and (ply:IsAdmin() or ply:IsSuperAdmin()) then
+            ent:ForcePlayerDrop()
+            for _,v in next, ent.APG_HeldBy do
+                APG.ForcePlayerDrop(v, ent)
+            end
+        else
+            return false
+        end
+    end
 
     if IsValid(ply) then
         ent.APG_HeldBy = ent.APG_HeldBy or {}
         ent.APG_HeldBy[ply:SteamID()] = ply
-        ent.APG_HeldBy.last = ply:SteamID()
+        ent.APG_HeldBy.last = {ply = ply, id = ply:SteamID()}
         ply.APG_CurrentlyHolding = ent
     end
 
@@ -204,7 +222,7 @@ end)
 --[[--------------------
     No Collide (between them) on props unfreezed
 ]]----------------------
-hook.Add("PlayerUnfrozeObject", "APG_PlayerUnfrozeObject", function (ply, ent, object)
+hook.Add("PlayerUnfrozeObject", "APG_PlayerUnfrozeObject", function(ply, ent, object)
     if not APG.isBadEnt( ent ) then return end
     ent.APG_Frozen = false
 end)
@@ -221,8 +239,9 @@ hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
     ent.APG_HeldBy[ply:SteamID()] = nil -- Remove the holder.
     ply.APG_CurrentlyHolding = nil
 
-    if not APG.isBadEnt( ent ) then return end
     ent.APG_Picked = false
+    
+    if not APG.isBadEnt( ent ) then return end
     APG.killVelocity(ent,true,false,true) -- Extend to constrained props, and wake target.
 end)
 

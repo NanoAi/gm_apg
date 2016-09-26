@@ -192,6 +192,8 @@ hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
     if not APG.canPhysGun( ent, ply ) then return false end
 
     local steamid = ply and ply.SteamID and ply:SteamID()
+       
+    ent.APG_ForceDrop = ent.APG_ForceDrop or {}
     if ent.APG_ForceDrop[steamid] then return false end
 
     local HasHolder = (ent.APG_HeldBy and #ent.APG_HeldBy > 0) == true

@@ -269,3 +269,21 @@ local function openMenu( len )
 end
 
 net.Receive( "apg_menu_s2c", openMenu )
+
+local function showNotice()
+    local level = tonumber(net.ReadUInt(3))
+    local msg = tostring(net.ReadString())
+
+    icon = level == 0 and NOTIFY_GENERIC or level == 1 and NOTIFY_CLEANUP or level == 2 and NOTIFY_ERROR
+
+    notification.AddLegacy(msg, icon, 3+(level*3))
+    surface.PlaySound(level == 1 and "buttons/button10.wav" or level == 2 and "ambient/alarms/klaxon1.wav" or "buttons/button15.wav")
+
+    if level ~= 2 then
+        MsgC(level == 0 and Color(0,255,0) or Color(255,191,0), "[APG] ", Color(255,255,255), msg, "\n")
+    else
+        MsgC("\n\n",Color(255,0,0),"/-----[APG]-----\\\n",Color(255,255,255),msg,"\n",Color(255,0,0),"\\-----[APG]-----/\n\n")
+    end
+end
+
+net.Receive( "apg_notice_s2c", showNotice )

@@ -1,5 +1,6 @@
 util.AddNetworkString("apg_settings_c2s")
 util.AddNetworkString("apg_menu_s2c")
+
 local function saveSettings( json )
     if not file.Exists("apg", "DATA") then file.CreateDir( "apg" ) end
     file.Write("apg/settings.txt", json)

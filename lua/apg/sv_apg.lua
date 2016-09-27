@@ -8,6 +8,7 @@
     Licensed to : http://steamcommunity.com/id/{{ user_id }}
 
 ]]--------------------------------------------
+util.AddNetworkString("apg_notice_s2c")
 
 APG = APG or {}
 --[[------------------------------------------
@@ -149,13 +150,42 @@ function APG.blockPickup( ply )
     end)
 end
 
-function APG.notify( msg, targets )
-    print("\n---\nNotify Still Needs to be redone!\n---")
-    print("msg\t=",msg)
-    print("targets\t=",targets)
-    if type(targets) == "table" then
-        print("\tAmount of Values:",#targets)
-        PrintTable(targets)
+function APG.notify(msg, targets, level)
+
+    local msg = string.PatternSafe(tostring(msg):gsub("%%","<p>"))
+    local targets = targets
+    local level = level
+    
+    if type(level) == "string" then
+        level = string.lower(level)
+        level = level == "notice" and 0 or level == "warning" and 1 or level == "alert" and 2
+    end
+
+    if type(targets) ~= "table" then -- Convert to a table.
+        targets = string.lower(tostring(targets))
+        if targets == "1" or targets == "superadmins" then
+            for _,v in next, player.GetHumans() do
+                if not IsValid(v) then continue end
+                if not (v:IsSuperAdmin()) then continue end
+                table.insert(targets,v) 
+            end
+        elseif targets == "2" or targets == "admins" then
+            for _,v in next, player.GetHumans() do
+                if not IsValid(v) then continue end
+                if not (v:IsAdmin() or v:IsSuperAdmin()) then continue end
+                table.insert(targets,v) 
+            end            
+        elseif targets == "0" or targets == "all" or targets == "everyone" then
+            targets = player.GetHumans()
+        end
+    end
+
+    for _,v in next, targets do
+        if not IsValid(v) then continue end
+        net.Start("apg_notice_s2c")
+            net.WriteUInt(level,3)
+            net.WriteString(msg)
+        net.Send(v)
     end
 end
 
@@ -262,9 +292,9 @@ end)
 
 function APG.log(msg, ply)
     if type(ply) ~= "string" and IsValid(ply) then
-        ply:PrintMessage ( 3 , msg )
+        ply:PrintMessage(3, msg)
     else
-        print( msg )
+        print(msg)
     end
 end
 

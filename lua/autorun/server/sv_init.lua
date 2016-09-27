@@ -120,15 +120,4 @@ function APG_DRM(scriptid, hash, filename, version, additional)
     )
 end
 
-timer.Simple(0.0001, function() -- Hotfix for now.
-    hook.Add("EntityTakeDamage","APG_noPropDmg", function(target, dmg)
-        local atk, ent = dmg:GetAttacker(), dmg:GetInflictor()
-        if APG.isBadEnt( ent ) or dmg:GetDamageType() == DMG_CRUSH or (APG.cfg["vehDamage"].value and isVehDamage(dmg,atk,ent)) then
-            dmg:SetDamage(0)
-            dmg:ScaleDamage(0)
-            return true
-        end
-    end)
-end)
-
 ]]--------------------------------------------

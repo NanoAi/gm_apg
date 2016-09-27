@@ -91,8 +91,9 @@ defaultSettings.cfg = {
         MISC
     ]]------------
     --[[ Vehicles ]]--
-    vehDamage = { value = false, desc = "True to disable vehicles damages, true to enable." },
+    vehDamage = { value = false, desc = "True to disable vehicles damages, false to enable." },
     vehNoCollide = { value = false, desc = "True to disable collisions between vehicles and players"},
+    vehIncludeWAC = { value = true, desc = "Check for WAC vehicles."}
 
     --[[ Props related ]]--
     autoFreeze = { value = false, desc = "Freeze every unfrozen prop each X seconds" },

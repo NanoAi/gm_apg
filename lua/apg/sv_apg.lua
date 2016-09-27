@@ -25,17 +25,12 @@ end
 
 function APG.isBadEnt( ent )
     if not IsValid(ent) then return false end
-
-    local h = hook.Run("APGisBadEnt", ent)
-    if isbool(h) then return h end
-
     local class = ent:GetClass()
     for k, v in pairs (APG.cfg["bad_ents"].value) do
         if ( v and k == class ) or (not v and string.find( class, k) ) then
             return true
         end
     end
-
     return false
 end
 
@@ -82,9 +77,7 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
     ent:CollisionRulesChanged()
 end
 
-function APG.FindWAC(ent) -- Note: Add a config to disable this check.
-    if not APG.cfg["vehIncludeWAC"].value then return false end
-
+local function findwac(ent)
     local e
     local i = 0
     if ent.wac_seatswitch or ent.wac_ignore then return true end
@@ -93,7 +86,6 @@ function APG.FindWAC(ent) -- Note: Add a config to disable this check.
         if i > 12 then break end -- Only check up to 12.
         i = i + 1
     end
-
     return IsValid(e)
 end
 
@@ -101,7 +93,7 @@ function APG.cleanUp( mode, notify )
     mode = mode or "unfrozen"
     for _, v in next, ents.GetAll() do
         APG.killVelocity(v,false)
-        if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or APG.FindWAC(v) then continue end
+        if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or findwac(v) then continue end
         if mode == "unfrozen" and v.APG_Frozen then -- Wether to clean only not frozen ents or all ents
             continue
         else
@@ -109,9 +101,7 @@ function APG.cleanUp( mode, notify )
         end
     end
     -- TODO : Fancy notification system
-    local msg = "Cleaned up (mode:" .. mode .. ")"
-    APG.log(msg)
-    APG.notify(msg, "all", 2)
+    APG.log("[APG] Cleaned up (mode:" .. mode .. ")")
 end
 
 function APG.ghostThemAll( notify )
@@ -123,9 +113,7 @@ function APG.ghostThemAll( notify )
         APG.entGhost( v, false, true )
     end
     -- TODO : Fancy notification system
-    local msg = "Unfrozen props ghosted!" 
-    APG.log(msg)
-    APG.notify(msg, "all", 1)
+    APG.log("[APG] Unfrozen props ghosted!")
 end
 
 function APG.freezeIt( ent )
@@ -142,9 +130,7 @@ function APG.freezeProps( notify )
         APG.freezeIt( v )
     end
     -- TODO : Fancy notification system
-    local msg = "Props frozen"
-    APG.log(msg)
-    APG.notify(msg, "all", 1)
+    APG.log("[APG] Props frozen")
 end
 
 function APG.ForcePlayerDrop(ply,ent)
@@ -164,35 +150,15 @@ function APG.blockPickup( ply )
     end)
 end
 
-function APG.notify(msg, targets, level) -- The most advanced notify function in the world.
-    local logged = false
+function APG.notify(msg, targets, level)
 
-    local msg = string.PatternSafe(tostring(msg))
+    local msg = string.PatternSafe(tostring(msg):gsub("%%","<p>"))
     local targets = targets
     local level = level
     
     if type(level) == "string" then
         level = string.lower(level)
         level = level == "notice" and 0 or level == "warning" and 1 or level == "alert" and 2
-    end
-
-    if IsValid(targets) and isentity(targets) and targets:IsPlayer() then
-        targets = {targets}
-    end
-
-    if level > 0 and type(targets) == "table" then
-        local i = 0
-        local str = ""
-        local max = #targets
-
-        for _,v in next, targets do 
-            str = str..(IsValid(v) and tostring(v).."["..v:SteamID().."]" or "")
-            i = i + 1
-            str = (i < max) and " & " or ""
-        end
-
-        ServerLog("[APG] ",msg," : ",str)
-        logged = true
     end
 
     if type(targets) ~= "table" then -- Convert to a table.
@@ -214,10 +180,6 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
         end
     end
 
-    if not logged and level > 0 then
-        ServerLog("[APG] ",msg)
-    end
-
     for _,v in next, targets do
         if not IsValid(v) then continue end
         net.Start("apg_notice_s2c")
@@ -226,6 +188,7 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
         net.Send(v)
     end
 end
+
 
 --[[------------------------------------------
     Player Control
@@ -328,7 +291,11 @@ end)
 ]]----------------------
 
 function APG.log(msg, ply)
-    ServerLog("[APG] ",msg)
+    if type(ply) ~= "string" and IsValid(ply) then
+        ply:PrintMessage(3, msg)
+    else
+        print(msg)
+    end
 end
 
 --[[--------------------

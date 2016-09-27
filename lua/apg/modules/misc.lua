@@ -29,15 +29,15 @@ local function isVehDamage(dmg,atk,ent)
     if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (IsValid(ent) and (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep")) then
         return true
     end
-    return APG.FindWAC(ent) -- Detect WAC Vehicles.
+    return false
 end
 
 --[[--------------------
     No Collide vehicles on spawn
 ]]----------------------
-APG.hookRegister(mod,"OnEntityCreated","APG_noCollideVeh",function(ent)
-    timer.Simple(0.03, function()
-        if APG.cfg["vehNoCollide"].value and (ent:IsVehicle() or APG.FindWAC(ent)) then
+APG.hookRegister(mod,"PlayerSpawnedVehicle","APG_noCollideVeh",function( _ , ent)
+    timer.Simple(0.1, function()
+        if APG.cfg["vehNoCollide"].value then
             ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
         end
     end)

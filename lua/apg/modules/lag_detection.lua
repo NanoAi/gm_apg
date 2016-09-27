@@ -134,10 +134,7 @@ APG.hookRegister( mod, "Think", "APG_detectLag", function()
             if not pause then
                 pause = true
                 timer.Simple( APG.cfg["lagFuncTime"].value, function() pause = false end)
-                
-                local msg = "WARNING LAG DETECTED : Running lag fix function!"
-                APG.notify(msg, "all", 2)
-
+                APG.log( "[APG] WARNING LAG DETECTED : Running lag fix function")
                 hook.Run( "APG_lagDetected" )
             end
         end

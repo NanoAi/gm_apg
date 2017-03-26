@@ -109,14 +109,14 @@ function APG.cleanUp( mode, notify )
         end
     end
     -- TODO : Fancy notification system
-    local msg = "Cleaned up (mode:" .. mode .. ")"
-    APG.log(msg)
+    local msg = "Cleaned up (mode: "..mode.. ")"
+    
     APG.notify(msg, "all", 2)
 end
 
 function APG.ghostThemAll( notify )
     if not APG.modules[ "ghosting" ] then
-        return APG.log("[APG] Warning : Tried to ghost props but ghosting is disabled!")
+        return APG.log("[APG] Warning: Tried to ghost props but ghosting is disabled!")
     end
     for _, v in next, ents.GetAll() do
         if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or v.APG_Frozen then continue end
@@ -124,7 +124,7 @@ function APG.ghostThemAll( notify )
     end
     -- TODO : Fancy notification system
     local msg = "Unfrozen props ghosted!" 
-    APG.log(msg)
+    
     APG.notify(msg, "all", 1)
 end
 
@@ -143,7 +143,7 @@ function APG.freezeProps( notify )
     end
     -- TODO : Fancy notification system
     local msg = "Props frozen"
-    APG.log(msg)
+    
     APG.notify(msg, "all", 1)
 end
 
@@ -167,7 +167,7 @@ end
 function APG.notify(msg, targets, level) -- The most advanced notify function in the world.
     local logged = false
 
-    local msg = string.PatternSafe(tostring(msg))
+    local msg = string.Trim(string.PatternSafe(tostring(msg)))
     local targets = targets
     local level = level
     
@@ -176,7 +176,7 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
         level = level == "notice" and 0 or level == "warning" and 1 or level == "alert" and 2
     end
 
-    if IsValid(targets) and isentity(targets) and targets:IsPlayer() then
+    if isentity(targets) and IsValid(targets) and targets:IsPlayer() then
         targets = {targets}
     end
 
@@ -191,8 +191,7 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
             str = (i < max) and " & " or ""
         end
 
-        ServerLog("[APG] ",msg," : ",str)
-        logged = true
+        msg = str and msg.." : "..str or msg
     end
 
     if type(targets) ~= "table" then -- Convert to a table.
@@ -214,8 +213,10 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
         end
     end
 
-    if not logged and level > 0 then
-        ServerLog("[APG] ",msg)
+    msg = (msg ~= "") and msg or nil
+
+    if msg and level > 0 then
+        -- ServerLog("\n[APG] ",msg.."\n")
     end
 
     for _,v in next, targets do
@@ -239,6 +240,7 @@ hook.Add("StartCommand", "APG_StartCmd", function(ply, mv) -- Allows to control 
     if not ent.APG_ForceDrop then return end
 
     local ForceDrop = ent.APG_ForceDrop[ply:SteamID() or ""]
+    if not ForceDrop then return end
 
     if ForceDrop.time < CurTime() then
         ForceDrop = nil
@@ -264,7 +266,7 @@ hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
     if ent.APG_ForceDrop[steamid] then return false end
 
     local HasHolder = (ent.APG_HeldBy and #ent.APG_HeldBy > 0) == true
-    local HeldByLast = ent.APG_HeldBy.last
+    local HeldByLast = ent.APG_HeldBy and ent.APG_HeldBy.last
 
     if HasHolder then
         if HeldByLast and (ply:IsAdmin() or ply:IsSuperAdmin()) then
@@ -328,13 +330,18 @@ end)
 ]]----------------------
 
 function APG.log(msg, ply)
-    ServerLog("[APG] ",msg)
+    if type(ply) ~= "string" and IsValid(ply) then
+        ply:PrintMessage(3, msg)
+    else
+        print(msg)
+    end
 end
 
 --[[--------------------
     APG job manager
-]]----------------------
-local toProcess = {}
+--]]----------------------
+local toProcess = toProcess or {}
+
 function APG.dJobRegister( job, delay, limit, func, onBegin, onEnd )
     local tab = {
         content = {},
@@ -366,9 +373,18 @@ local function APG_delayedTick( job )
     end)
 end
 
-function APG.startDJob( job, content )
+APG.ProcessorErrors = 0
 
-    if not isstring(job) or not content or table.HasValue(toProcess[job].content, content) then return end
+function APG.startDJob( job, content )
+    if not job or not content then return end
+    if not toProcess or not toProcess[job] then 
+        ErrorNoHalt("[APG] No Process Found, Attempting Reload!\n---\nThis Shouldn't Happen Concider Restarting!\n")
+        APG.reload()
+        return
+    end
+
+    if table.HasValue(toProcess[job].content, content) then return end
+
     -- Is it a problem if there is a same ent being unghosted twice ?
     table.insert( toProcess[job].content, content )
     hook.Add("Tick", "APG_delayed_" .. job, function()
@@ -380,31 +396,8 @@ function APG.startDJob( job, content )
     end)
 end
 
---[[--------------------
-    LOADING DRM + MODULES
-
-local id, hash = {{ script_id }}, {{ web_hook "http://scriptenforcer.net/api.php?action=getAuth" "" }}
-local version, add = "{{ script_version_name }}", ""
-hook.Add("Initialize", "APG_DRM", function()
-    timer.Simple(30, function()
-        APG_DRM(id, hash, "base", version, add)
-        for k, v in next, APG.modules do
-            APG_DRM(id, hash, k, version, add)
-        end
-        timer.Simple(5, function() APG.reload() end)
+hook.Add("InitPostEntity", "APG_Load", function()
+    timer.Simple(0, function() 
+        APG.reload()
     end)
 end)
-
-local canDRM = true
-concommand.Add( "APG_DRM", function(ply, cmd, arg) -- You can get banned from ScriptEnforcer if you spam this command !
-    if (IsValid(ply) and not ply:IsSuperAdmin()) or not canDRM then return end
-    canDRM = false
-    APG_DRM(id, hash, "base", version, add)
-    for k, v in next, APG.modules do
-        APG_DRM(id, hash, k, version, add)
-    end
-    timer.Simple(5, function() APG.reload() end)
-    ply:PrintMessage ( 3 , "[APG] DRM Reloaded - You can get banned from ScriptEnforcer if you spam this command" )
-    timer.Simple(60, function() canDRM = true end)
-end)
-]]----------------------

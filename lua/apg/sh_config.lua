@@ -15,7 +15,7 @@
     If you want to configure APG to fit your server needs, you can either modify this file
     or edit the config ingame ( using the chat command : !apg ).
 
- /!\ Be sure to have your server linked on ScriptEnforcer.net ( see the How to install part on addon page )
+    You can now also use "apg" in console!
 
 ]]--------------------------------------------
 APG.cfg = APG.cfg or {}
@@ -23,6 +23,7 @@ APG.modules = APG.modules or {}
 
 --[[----------
     Your very own custom function
+    This function will run whenever lag is detected on your server!
 ]]------------
 function APG.customFunc( notify )
     -- Do something
@@ -93,7 +94,7 @@ defaultSettings.cfg = {
     --[[ Vehicles ]]--
     vehDamage = { value = false, desc = "True to disable vehicles damages, false to enable." },
     vehNoCollide = { value = false, desc = "True to disable collisions between vehicles and players"},
-    vehIncludeWAC = { value = true, desc = "Check for WAC vehicles."}
+    vehIncludeWAC = { value = true, desc = "Check for WAC vehicles."},
 
     --[[ Props related ]]--
     autoFreeze = { value = false, desc = "Freeze every unfrozen prop each X seconds" },

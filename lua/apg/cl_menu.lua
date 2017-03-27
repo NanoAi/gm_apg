@@ -148,6 +148,8 @@ local function openMenu( len )
     local settings = net.ReadData( len )
     settings = util.Decompress( settings )
     settings = util.JSONToTable( settings )
+
+    APG.cfg = settings.cfg
     table.Merge(APG, settings)
 
     local APG_Main = vgui.Create( "DFrame" )
@@ -289,7 +291,6 @@ end
 
 net.Receive( "apg_notice_s2c", showNotice )
 
-
 net.Receive( "apg_help_s2c", function()
     timer.Simple(3.14, function()
         chat.AddText(Color(0,255,0), "\nHello ", LocalPlayer():Nick()," we are really happy that you chose to try APG. (See Console to Get Started!)\n")
@@ -300,3 +301,88 @@ net.Receive( "apg_help_s2c", function()
         surface.PlaySound("plats/elevbell1.wav")
     end)
 end)
+
+properties.Add( "apgoptions", {
+    MenuLabel = "APG Options", -- Name to display on the context menu
+    Order = 9999, -- The order to display this property relative to other properties
+    MenuIcon = "icon16/fire.png", -- The icon to display next to the property
+
+    Filter = function( self, ent, ply ) -- A function that determines whether an entity is valid for this property
+        if not ply:IsSuperAdmin() then return false end
+        return (ent.GetClass and ent:GetClass() and IsValid(ent))
+    end,
+    MenuOpen = function( self, option, ent, tr )
+        local submenu = option:AddSubMenu()
+        local function addoption(str, data)
+            local menu = submenu:AddOption(str, data.callback)
+
+            if data.icon then
+                menu:SetImage( data.icon )
+            end
+
+            return menu
+        end
+
+        addoption( "Sleep entities of this Class", {
+            icon = "icon16/clock.png",
+            callback = function() self:APGcmd(ent, "sleepclass") end,
+        })
+
+        addoption( "Freeze entities of this Class", {
+            icon = "icon16/bell_delete.png",
+            callback = function() self:APGcmd(ent, "freezeclass") end,
+        })
+
+        submenu:AddSpacer()
+
+        addoption( "Cleanup Owner - Unfrozens", {
+            icon = "icon16/cog_delete.png",
+            callback = function() self:APGcmd(ent, "clearunfrozen") end,
+        })
+
+        addoption( "Cleanup Owner", {
+            icon = "icon16/bin_closed.png",
+            callback = function() self:APGcmd(ent, "clearowner") end,
+        })
+
+        submenu:AddSpacer()
+
+        addoption( "Get Owner SteamID", {
+            icon = "icon16/user.png",
+            callback = function() self:APGcmd(ent, "getownerid") end,
+        })
+
+        addoption( "Get Owner Entity Count", {
+            icon = "icon16/brick.png",
+            callback = function() self:APGcmd(ent, "getownercount") end,
+        })
+
+        submenu:AddSpacer()
+
+        addoption( "Add this entity class to the Ghosting List", {
+            icon = "icon16/cross.png",
+            callback = function() self:APGcmd(ent, "addghost") end,
+        })
+
+        addoption( "Remove this entity class from the Ghosting List", {
+            icon = "icon16/tick.png",
+            callback = function() self:APGcmd(ent, "remghost") end, 
+        })
+    end,
+    Action = function( self, ent ) end,
+    APGcmd = function(self, ent, cmd)
+        if cmd == "getownerid" then
+            local owner, _ = ent:CPPIGetOwner()
+            if IsValid(owner) and owner.SteamID then
+                local id = tostring(owner:SteamID())
+                SetClipboardText(id)
+                chat.AddText(Color(0,255,0), "\n\""..id.."\" has been copied to your clipboard.\n")
+            end
+        else
+            net.Start("apg_context_c2s")
+                net.WriteString(cmd)
+                net.WriteEntity(ent)
+            net.SendToServer()
+        end
+    end,
+})

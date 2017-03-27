@@ -97,9 +97,9 @@ function APG.FindWAC(ent) -- Note: Add a config to disable this check.
     return IsValid(e)
 end
 
-function APG.cleanUp( mode, notify )
-    mode = mode or "unfrozen"
-    for _, v in next, ents.GetAll() do
+function APG.cleanUp( mode, notify, specific )
+    local mode = mode or "unfrozen"
+    for _, v in next, specific or ents.GetAll() do
         APG.killVelocity(v,false)
         if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or APG.FindWAC(v) then continue end
         if mode == "unfrozen" and v.APG_Frozen then -- Wether to clean only not frozen ents or all ents
@@ -109,9 +109,10 @@ function APG.cleanUp( mode, notify )
         end
     end
     -- TODO : Fancy notification system
-    local msg = "Cleaned up (mode: "..mode.. ")"
-    
-    APG.notify(msg, "all", 2)
+    if notify then
+        local msg = "Cleaned up (mode: "..mode.. ")"
+        APG.notify(msg, "all", 2)
+    end
 end
 
 function APG.ghostThemAll( notify )
@@ -167,9 +168,8 @@ end
 function APG.notify(msg, targets, level) -- The most advanced notify function in the world.
     local logged = false
 
-    local msg = string.Trim(string.PatternSafe(tostring(msg)))
-    local targets = targets
-    local level = level
+    local msg = string.Trim(tostring(msg))
+    local level = level or 0
     
     if type(level) == "string" then
         level = string.lower(level)
@@ -215,7 +215,7 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
 
     msg = (msg ~= "") and msg or nil
 
-    if msg and level > 0 then
+    if msg and level > 1 then
         -- ServerLog("\n[APG] ",msg.."\n")
     end
 
@@ -376,7 +376,7 @@ end
 APG.ProcessorErrors = 0
 
 function APG.startDJob( job, content )
-    if not job or not content then return end
+    if not job or not isstring(job) or not content then return end
     if not toProcess or not toProcess[job] then 
         ErrorNoHalt("[APG] No Process Found, Attempting Reload!\n---\nThis Shouldn't Happen Concider Restarting!\n")
         APG.reload()

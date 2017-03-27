@@ -1,5 +1,6 @@
 util.AddNetworkString("apg_settings_c2s")
 util.AddNetworkString("apg_menu_s2c")
+util.AddNetworkString("apg_context_c2s")
 
 local function saveSettings( json )
     if not file.Exists("apg", "DATA") then file.CreateDir( "apg" ) end
@@ -35,16 +36,85 @@ local function sendToClient( ply )
     net.Send(ply)
 end
 
-concommand.Add("apg", function( ply, cmd, args )
-    if IsValid(ply) and ply:IsSuperAdmin() then
-        sendToClient(ply)
-    end
-end)
-
 hook.Add( "PlayerSay", "openAPGmenu", function( ply, text, public )
     text = string.lower( text )
     if ply:IsSuperAdmin() and text == "!apg" then
+        PrintTable(APG.cfg.bad_ents.value)
         sendToClient( ply )
         return ""
     end
 end)
+
+local function contextCMD(_,ply)
+    if not ply:IsSuperAdmin() then return end
+
+    local cmd = net.ReadString()
+    local ent = net.ReadEntity() or ply:GetEyeTraceNoCursor().Entity
+
+    local class = IsValid(ent) and ent.GetClass and ent:GetClass() or nil
+    if not class then return end
+
+    local owner = APG.getOwner(ent)
+
+    if cmd == "addghost" then
+        if not APG.cfg.bad_ents.value[class] then
+            APG.cfg.bad_ents.value[class] = true
+            APG.notify("\""..class.."\" added to Ghost List!", ply)
+        else
+            APG.notify("This class is already listed!", ply)
+        end
+    elseif cmd == "remghost" then
+        APG.cfg.bad_ents.value[class] = nil
+        APG.notify("\""..class.."\" removed from the Ghost List!", ply)
+    elseif cmd == "clearowner" then
+        if IsValid(owner) then cleanup.CC_Cleanup(owner,"gmod_cleanup",{}) end
+    elseif cmd == "clearunfrozen" then
+        local count = 0
+        for _,v in next, ents.GetAll() do
+            if not (IsValid(v) and APG.getOwner(v) == owner) then continue end
+            if not APG.isBadEnt(v) then continue end
+            if not v.APG_Frozen then 
+                SafeRemoveEntity(v)
+                count = count + 1
+            end
+        end
+        APG.notify(tostring(count).." entities have been removed!", ply)
+    elseif cmd == "getownercount" then
+        local count = 0
+        for _,v in next, ents.GetAll() do
+            if IsValid(v) and APG.getOwner(v) == owner then
+                count = count + 1
+            end
+        end
+
+        APG.notify(tostring(owner:Nick()).." has "..count..(count == 1 and " entity." or " entities."), ply)
+    elseif cmd == "freezeclass" then
+        local count = 0
+        for _,v in next, ents.FindByClass(class) do
+            if IsValid(v) and not v.APG_Frozen then
+                count = count + 1
+                APG.killVelocity(v, false, true, false)
+            end
+        end
+        APG.notify((count or 0)..(count == 1 and " Entity" or " Entities").." Frozen", ply)
+    elseif cmd == "sleepclass" then
+        local count = 0
+        for _,v in next, ents.FindByClass(class) do
+            if IsValid(v) and not v.APG_Frozen then
+                count = count + 1
+                APG.killVelocity(v, false, false, false)
+            end
+        end
+        APG.notify((count or 0)..(count == 1 and " Entity is" or " Entities are").." now Sleeping", ply)
+    end
+
+    if cmd == "addghost" or cmd == "remghost" then
+        local settings = {}
+        settings.cfg = APG.cfg or {}
+        settings.modules = APG.modules or {}
+
+        saveSettings( util.TableToJSON( settings ) )
+        APG.reload()
+    end
+end
+net.Receive("apg_context_c2s", contextCMD)

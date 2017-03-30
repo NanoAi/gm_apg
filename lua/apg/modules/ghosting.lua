@@ -143,7 +143,7 @@ function APG.entUnGhost( ent, ply )
             end
             ent:SetCollisionGroup( newColGroup )
         else
-            APG.log( "There is something in this prop!", ply )
+            APG.notify("There is something in this prop!", ply, 1)
             ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
         end
     end
@@ -198,7 +198,7 @@ APG.hookRegister( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent 
     if APG.cfg["alwaysFrozen"].value then
         APG.freezeIt( ent )
     end
-    APG.entUnGhost( ent )
+    APG.entUnGhost( ent, ply )
     APG.ConstrainApply( ent, function( _ent )
         _ent.APG_Picked = false
         APG.startDJob( "unghost", _ent )

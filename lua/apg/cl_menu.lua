@@ -47,10 +47,11 @@ local function APGBuildGhostPanel()
     local panel = APG_panels["ghosting"]
     panel.Paint = function( i, w, h)
         draw.RoundedBox(0,0,37,170,135,Color( 38, 38, 38, 255))
-        draw.DrawText( "Ghosting color :", "APG_element_font",5, 37, Color( 189, 189, 189), 3 )
+        draw.DrawText( "Ghosting color:", "APG_element_font",5, 37, Color( 189, 189, 189), 3 )
 
         draw.RoundedBox(0,175,37,250,250,Color( 38, 38, 38, 255))
-        draw.DrawText( "Bad entities :", "APG_element_font",180, 37, Color( 189, 189, 189), 3 )
+        draw.DrawText( "Bad entities:", "APG_element_font", 180, 37, Color( 189, 189, 189), 3 )
+        draw.DrawText( "(Right-Click to Toggle)", "APG_title2_font", 280, 38, Color( 189, 189, 189), 3 )
     end
     utils.switch( panel, 0, 180, 170, 20, "Always frozen", "alwaysFrozen" )
 
@@ -69,6 +70,13 @@ local function APGBuildGhostPanel()
     dList:SetHideHeaders(false)
     dList:AddColumn("Class")
     dList:AddColumn("Exact")
+
+    function dList:OnRowRightClick( id, line )
+        local key = line:GetColumnText(1)
+        local value = !tobool(line:GetColumnText(2))
+        line:SetColumnText(2, value)
+        APG.cfg["bad_ents"].value[key] = value
+    end
 
     local function updtTab()
         dList:Clear()

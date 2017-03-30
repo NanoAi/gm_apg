@@ -18,6 +18,8 @@ local function recSettings( len, ply)
     saveSettings( settings )
 
     settings = util.JSONToTable( settings )
+    APG.cfg = settings.cfg
+    
     table.Merge(APG, settings)
     APG.reload()
 end
@@ -39,7 +41,6 @@ end
 hook.Add( "PlayerSay", "openAPGmenu", function( ply, text, public )
     text = string.lower( text )
     if ply:IsSuperAdmin() and text == "!apg" then
-        PrintTable(APG.cfg.bad_ents.value)
         sendToClient( ply )
         return ""
     end

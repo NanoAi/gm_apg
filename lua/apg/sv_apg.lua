@@ -165,7 +165,7 @@ function APG.blockPickup( ply )
     end)
 end
 
-function APG.notify(msg, targets, level) -- The most advanced notify function in the world.
+function APG.notify(msg, targets, level, log) -- The most advanced notify function in the world.
     local logged = false
 
     local msg = string.Trim(tostring(msg))
@@ -176,25 +176,9 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
         level = level == "notice" and 0 or level == "warning" and 1 or level == "alert" and 2
     end
 
-    if isentity(targets) and IsValid(targets) and targets:IsPlayer() then
+    if isentity(targets) and IsValid(targets) and targets:GetClass() == "player" then
         targets = {targets}
-    end
-
-    if level > 0 and type(targets) == "table" then
-        local i = 0
-        local str = ""
-        local max = #targets
-
-        for _,v in next, targets do 
-            str = str..(IsValid(v) and tostring(v).."["..v:SteamID().."]" or "")
-            i = i + 1
-            str = (i < max) and " & " or ""
-        end
-
-        msg = str and msg.." : "..str or msg
-    end
-
-    if type(targets) ~= "table" then -- Convert to a table.
+    elseif type(targets) ~= "table" then -- Convert to a table.
         targets = string.lower(tostring(targets))
         if targets == "1" or targets == "superadmins" then
             for _,v in next, player.GetHumans() do
@@ -213,11 +197,29 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
         end
     end
 
-    msg = (msg ~= "") and msg or nil
+    --[[--
+    if level > 0 and type(targets) == "table" then
+        local i = 0
+        local str = ""
+        local max = #targets
 
-    if msg and level > 1 then
-        -- ServerLog("\n[APG] ",msg.."\n")
+        for _,v in next, targets do 
+            str = str..(IsValid(v) and tostring(v).."["..v:SteamID().."]" or "")
+            i = i + 1
+            str = str..((i < max) and " & " or "")
+        end
+
+        msg = string.Trim(str) ~= "" and msg.." : "..str or msg
     end
+    --]]--
+
+    msg = (string.Trim(msg or "") ~= "") and msg or nil
+
+    if log or (msg and level >= 2) then
+        ServerLog("\n[APG] ",msg.."\n")
+    end
+
+    if type(targets) ~= "table" then return false end
 
     for _,v in next, targets do
         if not IsValid(v) then continue end
@@ -226,6 +228,8 @@ function APG.notify(msg, targets, level) -- The most advanced notify function in
             net.WriteString(msg)
         net.Send(v)
     end
+
+    return true
 end
 
 --[[------------------------------------------

@@ -377,8 +377,6 @@ local function APG_delayedTick( job )
     end)
 end
 
-APG.ProcessorErrors = 0
-
 function APG.startDJob( job, content )
     if not job or not isstring(job) or not content then return end
     if not toProcess or not toProcess[job] then 

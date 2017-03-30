@@ -216,7 +216,7 @@ function APG.notify(msg, targets, level, log) -- The most advanced notify functi
     msg = (string.Trim(msg or "") ~= "") and msg or nil
 
     if log or (msg and level >= 2) then
-        ServerLog("\n[APG] ",msg.."\n")
+        ServerLog("[APG] ",msg.."\n")
     end
 
     if type(targets) ~= "table" then return false end
@@ -335,7 +335,7 @@ end)
 
 function APG.log(msg, ply)
     if type(ply) ~= "string" and IsValid(ply) then
-        ply:PrintMessage(3, msg)
+        ply:PrintMessage(3, msg.."\n")
     else
         print(msg)
     end

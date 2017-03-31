@@ -46,9 +46,10 @@ end
 
 function APG.killVelocity(ent, extend, freeze, wake_target)
     local vec = Vector()
-    ent:SetVelocity(vec)
 
-    if ent.IsPlayer and ent:IsPlayer() then ent:SetVelocity(ent:GetVelocity()*-1) end
+    if ent.GetClass and ent:GetClass() == "player" then ent:SetVelocity(ent:GetVelocity()*-1) return end
+    
+    ent:SetVelocity(vec)
 
     local function killvel(phys, freeze)
         if not IsValid(phys) then return end
@@ -149,8 +150,9 @@ function APG.freezeProps( notify )
 end
 
 function APG.ForcePlayerDrop(ply,ent)
+    print(ply)
     ent.APG_ForceDrop[ply:SteamID()] = { 
-        time = CurTime()+0.1,
+        time = CurTime()+0.3,
         who = ply,
     }
 end
@@ -252,7 +254,7 @@ hook.Add("StartCommand", "APG_StartCmd", function(ply, mv) -- Allows to control 
     end
 
     if (bit.band(mv:GetButtons(),IN_ATTACK) > 0) and ForceDrop.time > CurTime() and ForceDrop.who == ply then
-        ForceDrop.time = CurTime()+0.1
+        ForceDrop.time = CurTime()+0.11
         mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_ATTACK)))
     end
 end)
@@ -260,38 +262,39 @@ end)
 --[[------------------------------------------
     Entity pickup part
 ]]--------------------------------------------
+
 hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
     if not APG.isBadEnt( ent ) then return end
     if not APG.canPhysGun( ent, ply ) then return false end
 
-    local steamid = ply and ply.SteamID and ply:SteamID()
-       
+    ent.APG_Picked = true
+    ent.APG_Frozen = false
+
+    local sid = ply and ply.SteamID and ply:SteamID()
+
     ent.APG_ForceDrop = ent.APG_ForceDrop or {}
-    if ent.APG_ForceDrop[steamid] then return false end
+    if ent.APG_ForceDrop[sid] then return false end
 
-    local HasHolder = (ent.APG_HeldBy and #ent.APG_HeldBy > 0) == true
-    local HeldByLast = ent.APG_HeldBy and ent.APG_HeldBy.last
+    if ent.APG_HeldBy and ent.APG_HeldBy.plys and not ent.APG_HeldBy.plys[sid] then
+        local HasHolder = istable(ent.APG_HeldBy.plys) and (table.Count(ent.APG_HeldBy.plys) > 0)
+        local HeldByLast = ent.APG_HeldBy.last
 
-    if HasHolder then
-        if HeldByLast and (ply:IsAdmin() or ply:IsSuperAdmin()) then
-            ent:ForcePlayerDrop()
-            for _,v in next, ent.APG_HeldBy do
-                APG.ForcePlayerDrop(v, ent)
+        if HasHolder then
+            if HeldByLast and (ply:IsAdmin() or ply:IsSuperAdmin()) then
+                ent:ForcePlayerDrop()
+                for _,v in next, ent.APG_HeldBy.plys do
+                    APG.ForcePlayerDrop(v, ent)
+                end
+            else
+                return false
             end
-        else
-            return false
         end
     end
 
-    if IsValid(ply) then
-        ent.APG_HeldBy = ent.APG_HeldBy or {}
-        ent.APG_HeldBy[ply:SteamID()] = ply
-        ent.APG_HeldBy.last = {ply = ply, id = ply:SteamID()}
-        ply.APG_CurrentlyHolding = ent
-    end
-
-    ent.APG_Picked = true
-    ent.APG_Frozen = false
+    ent.APG_HeldBy = ent.APG_HeldBy or {plys={}}
+    ent.APG_HeldBy.plys[ply:SteamID()] = ply
+    ent.APG_HeldBy.last = {ply = ply, id = ply:SteamID()}
+    ply.APG_CurrentlyHolding = ent
 end)
 
 --[[--------------------
@@ -311,9 +314,13 @@ end)
 ]]----------------------
 hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
     ent.APG_HeldBy = ent.APG_HeldBy or {}
-    ent.APG_HeldBy[ply:SteamID()] = nil -- Remove the holder.
+    ent.APG_HeldBy.plys[ply:SteamID()] = nil -- Remove the holder.
+
+    PrintTable(ent.APG_HeldBy.plys)
+
     ply.APG_CurrentlyHolding = nil
 
+    if #ent.APG_HeldBy > 0 then return end
     ent.APG_Picked = false
     
     if not APG.isBadEnt( ent ) then return end

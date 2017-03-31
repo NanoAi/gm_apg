@@ -314,9 +314,10 @@ end)
 ]]----------------------
 hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
     ent.APG_HeldBy = ent.APG_HeldBy or {}
-    ent.APG_HeldBy.plys[ply:SteamID()] = nil -- Remove the holder.
-
-    PrintTable(ent.APG_HeldBy.plys)
+    
+    if ent.APG_HeldBy.plys then
+        ent.APG_HeldBy.plys[ply:SteamID()] = nil -- Remove the holder.
+    end
 
     ply.APG_CurrentlyHolding = nil
 

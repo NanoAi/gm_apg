@@ -99,19 +99,3 @@ concommand.Add("apg_set", function( ply, cmd, args, argStr )
         APG.log( ply, "Error: unknown setting")
     end
 end)
-
---[[------------------------------------------
-            First Time!
-]]--------------------------------------------
-util.AddNetworkString("apg_help_s2c")
-
-if not file.Exists( "apg.lock.txt", "DATA" ) then
-    hook.Add("PlayerInitialSpawn", "FirstTimeInfo", function(ply)
-        if IsValid(ply) and ply:SteamID64() == "{{ user_id }}" then
-            file.Write("apg.lock.txt", "{{ user_id }}")
-            net.Start("apg_help_s2c")
-            net.Send(ply)
-            hook.Remove("PlayerInitialSpawn", "FirstTimeInfo")
-        end
-    end)
-end

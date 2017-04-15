@@ -150,7 +150,6 @@ function APG.freezeProps( notify )
 end
 
 function APG.ForcePlayerDrop(ply,ent)
-    print(ply)
     ent.APG_ForceDrop[ply:SteamID()] = { 
         time = CurTime()+0.3,
         who = ply,
@@ -199,25 +198,9 @@ function APG.notify(msg, targets, level, log) -- The most advanced notify functi
         end
     end
 
-    --[[--
-    if level > 0 and type(targets) == "table" then
-        local i = 0
-        local str = ""
-        local max = #targets
-
-        for _,v in next, targets do 
-            str = str..(IsValid(v) and tostring(v).."["..v:SteamID().."]" or "")
-            i = i + 1
-            str = str..((i < max) and " & " or "")
-        end
-
-        msg = string.Trim(str) ~= "" and msg.." : "..str or msg
-    end
-    --]]--
-
     msg = (string.Trim(msg or "") ~= "") and msg or nil
 
-    if log or (msg and level >= 2) then
+    if msg and (log or level >= 2) then
         ServerLog("[APG] ",msg.."\n")
     end
 
@@ -239,24 +222,27 @@ end
 ]]--------------------------------------------
 
 hook.Add("StartCommand", "APG_StartCmd", function(ply, mv) -- Allows to control player events before they happen.
-    local predicted_ent = ply.APG_CurrentlyHolding
-    local ent = IsValid(predicted_ent) and predicted_ent or ply:GetEyeTrace().Entity
+	local predicted_ent = ply.APG_CurrentlyHolding
+	if IsValid(predicted_ent) and (bit.band(mv:GetButtons(),IN_RELOAD) > 0) then
+		mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_RELOAD)))
+	end
 
-    if not IsValid(ent) then return end
-    if not ent.APG_ForceDrop then return end
+	local ent = IsValid(predicted_ent) and predicted_ent or ply:GetEyeTrace().Entity
+	if not IsValid(ent) then return end
+	if not ent.APG_ForceDrop then return end
 
-    local ForceDrop = ent.APG_ForceDrop[ply:SteamID() or ""]
-    if not ForceDrop then return end
+	local ForceDrop = ent.APG_ForceDrop[ply:SteamID() or ""]
+	if not ForceDrop then return end
 
-    if ForceDrop.time < CurTime() then
-        ForceDrop = nil
-        return
-    end
+	if ForceDrop.time < CurTime() then
+		ForceDrop = nil
+		return
+	end
 
-    if (bit.band(mv:GetButtons(),IN_ATTACK) > 0) and ForceDrop.time > CurTime() and ForceDrop.who == ply then
-        ForceDrop.time = CurTime()+0.11
-        mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_ATTACK)))
-    end
+	if (bit.band(mv:GetButtons(),IN_ATTACK) > 0) and ForceDrop.time > CurTime() and ForceDrop.who == ply then
+		ForceDrop.time = CurTime()+0.11
+		mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_ATTACK)))
+	end
 end)
 
 --[[------------------------------------------
@@ -406,8 +392,8 @@ function APG.startDJob( job, content )
     end)
 end
 
-hook.Add("InitPostEntity", "APG_Load", function()
-    timer.Simple(0, function() 
+hook.Add("PostGamemodeLoaded", "APG_Load", function()
+    timer.Simple(0, function() -- Make sure we load last!
         APG.reload()
     end)
 end)

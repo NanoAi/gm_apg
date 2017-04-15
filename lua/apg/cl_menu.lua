@@ -28,6 +28,7 @@ local function APGBuildMiscPanel()
     utils.numSlider(panel, 0, 70, 500, 20, "Auto freeze delay(seconds)", "autoFreezeTime", 5, 600, 0 )
     utils.switch( panel, 0, 100, 395, 20, "Disable vehicle damages", "vehDamage" )
     utils.switch( panel, 0, 130, 395, 20, "Disable vehicle collisions (with players)", "vehNoCollide" )
+    utils.switch( panel, 0, 160, 395, 20, "Block Physgun Reload", "blockPhysgunReload" )
     --APG_numSlider(panel, 0, 75, 500, 20, "Vehicle NoCollide", "vehNoCollide", 5, 50, 0)
 end
 

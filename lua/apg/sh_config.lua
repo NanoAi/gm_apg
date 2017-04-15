@@ -52,7 +52,7 @@ defaultSettings.modules = { -- Set to true of false to enable/disable module
     ["stack_detection"] = true,
     ["lag_detection"] = true,
     ["misc"] = true,
-    ["method0"] = false -- [In development]
+    ["method0"] = false -- Pending Removal
 }
 
 defaultSettings.cfg = {
@@ -65,7 +65,9 @@ defaultSettings.cfg = {
         value = {
             ["prop_physics"] = true,
             ["wire_"] = false,
-            ["gmod_"] = false },
+            ["gmod_"] = false,
+            ["keypad"] = false,
+        },
         desc = "Entities to ghost/control/secure (true if exact name, false if it is a pattern"},
 
     alwaysFrozen = { value = false  , desc = "Set to true to auto freeze props on physgun drop (aka APA_FreezeOnDrop)" },
@@ -97,6 +99,7 @@ defaultSettings.cfg = {
     vehIncludeWAC = { value = true, desc = "Check for WAC vehicles."},
 
     --[[ Props related ]]--
+    blockPhysgunReload = { value = false, desc = "Block players from using physgun reload"},
     autoFreeze = { value = false, desc = "Freeze every unfrozen prop each X seconds" },
     autoFreezeTime = { value = 120, desc = "Auto freeze timer (seconds)"},
 }

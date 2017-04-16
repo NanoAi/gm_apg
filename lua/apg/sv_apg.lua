@@ -84,6 +84,7 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
 end
 
 function APG.FindWAC(ent) -- Note: Add a config to disable this check.
+    if not IsValid(ent) then return false end
     if not APG.cfg["vehIncludeWAC"].value then return false end
 
     local e

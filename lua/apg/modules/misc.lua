@@ -26,7 +26,8 @@ local mod = "misc"
     Vehicle damage
 ]]----------------------
 local function isVehDamage(dmg,atk,ent)
-    if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (IsValid(ent) and (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep")) then
+    if not IsValid(ent) then return false end
+    if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep") then
         return true
     end
     return APG.FindWAC(ent) -- Detect WAC Vehicles.

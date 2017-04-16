@@ -300,17 +300,6 @@ end
 
 net.Receive( "apg_notice_s2c", showNotice )
 
-net.Receive( "apg_help_s2c", function()
-    timer.Simple(3.14, function()
-        chat.AddText(Color(0,255,0), "\nHello ", LocalPlayer():Nick()," we are really happy that you chose to try APG. (See Console to Get Started!)\n")
-        MsgC(Color(0,255,0),"To get started simply say ",Color(0,255,255),'"!apg"',Color(0,255,0)," to open your settings menu!\n")
-        MsgC(Color(0,255,0),"Remember if you need any help just make a ticket on ScriptFodder.\n")
-        MsgC(Color(255,191,0),"This copy of APG is registered to..\n\thttps://steamcommunity.com/profiles/{{ user_id }}\n\n")
-        print("Not sure what to do? Need more info? Please see the help section on https://scriptfodder.com/scripts/view/2779")
-        surface.PlaySound("plats/elevbell1.wav")
-    end)
-end)
-
 properties.Add( "apgoptions", {
     MenuLabel = "APG Options", -- Name to display on the context menu
     Order = 9999, -- The order to display this property relative to other properties

@@ -84,6 +84,7 @@ end
 
 function APG.entGhost( ent, enforce, noCollide )
     if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+    if ent.jailWall then return end
 
     if not ent.APG_Ghosted then
         ent.FPPAntiSpamIsGhosted = nil -- Override FPP Ghosting.

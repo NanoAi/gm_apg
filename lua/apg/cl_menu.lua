@@ -44,6 +44,13 @@ local function APGBuildLagPanel()
     --utils.numSlider(panel, 0, 215, 500, 20, "Notification mode ", "lagFuncNotify", 0, 2, 0)
 end
 
+local function APGBuildToolHackPanel()
+    local panel = APG_panels["tool_hacks"]
+    panel.Paint = function( i, w, h)
+        draw.DrawText( "Adds hooks to tools and more!", "APG_title2_font", w-150, h-10, Color( 189, 189, 189), 3 )
+    end
+end
+
 local function APGBuildGhostPanel()
     local panel = APG_panels["ghosting"]
     panel.Paint = function( i, w, h)
@@ -282,6 +289,7 @@ local function openMenu( len )
     APGBuildGhostPanel()
     APGBuildLagPanel()
     APGBuildStackPanel()
+    APGBuildToolHackPanel()
 end
 
 net.Receive( "apg_menu_s2c", openMenu )
@@ -307,7 +315,7 @@ properties.Add( "apgoptions", {
 
     Filter = function( self, ent, ply ) -- A function that determines whether an entity is valid for this property
         if not ply:IsSuperAdmin() then return false end
-        return (ent.GetClass and ent:GetClass() and IsValid(ent))
+        return (ent.GetClass and ent:GetClass() and IsValid(ent) and ent:EntIndex() > 0)
     end,
     MenuOpen = function( self, option, ent, tr )
         local submenu = option:AddSubMenu()
@@ -375,8 +383,10 @@ properties.Add( "apgoptions", {
                 local id = tostring(owner:SteamID())
                 SetClipboardText(id)
                 chat.AddText(Color(0,255,0), "\n\""..id.."\" has been copied to your clipboard.\n")
-            end
-        else
+            else
+               chat.AddText(Color(255,0,0), "\nOops, that's not a Player!\n")
+            end 
+        elseif IsValid(ent) and ent.EntIndex then
             net.Start("apg_context_c2s")
                 net.WriteString(cmd)
                 net.WriteEntity(ent)

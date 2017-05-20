@@ -37,11 +37,15 @@ function APG.load( module )
 end
 
 function APG.unLoad( module )
-    APG.modules[ module ] = false
+    APG.modules[module] = false
+
+    if not (istable(APG[module]) and next(APG[module])) then return end
+
     local hooks = APG[ module ]["hooks"]
     for k, v in next, hooks do
         hook.Remove(v.event, v.identifier)
     end
+
     local timers = APG[ module ]["timers"]
     for k, v in next, timers do
         timer.Remove(v.identifier)

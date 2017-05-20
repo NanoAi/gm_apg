@@ -150,11 +150,11 @@ function APG.freezeProps( notify )
     APG.notify(msg, "all", 1)
 end
 
-function APG.ForcePlayerDrop(ply,ent)
-    ent.APG_ForceDrop[ply:SteamID()] = { 
-        time = CurTime()+0.3,
-        who = ply,
-    }
+function APG.ForcePlayerDrop(ply, ent)
+    ply:ConCommand("-attack")
+    timer.Simple(0.1, function()
+        ent:ForcePlayerDrop()
+    end)
 end
 
 function APG.blockPickup( ply )
@@ -183,17 +183,21 @@ function APG.notify(msg, targets, level, log) -- The most advanced notify functi
     elseif type(targets) ~= "table" then -- Convert to a table.
         targets = string.lower(tostring(targets))
         if targets == "1" or targets == "superadmins" then
+            local new_targets = {}
             for _,v in next, player.GetHumans() do
                 if not IsValid(v) then continue end
                 if not (v:IsSuperAdmin()) then continue end
-                table.insert(targets,v) 
+                table.insert(new_targets,v) 
             end
+            targets = new_targets
         elseif targets == "2" or targets == "admins" then
+            local new_targets = {}
             for _,v in next, player.GetHumans() do
                 if not IsValid(v) then continue end
                 if not (v:IsAdmin() or v:IsSuperAdmin()) then continue end
-                table.insert(targets,v) 
-            end            
+                table.insert(new_targets,v) 
+            end
+            targets = new_targets
         elseif targets == "0" or targets == "all" or targets == "everyone" then
             targets = player.GetHumans()
         end
@@ -219,34 +223,6 @@ function APG.notify(msg, targets, level, log) -- The most advanced notify functi
 end
 
 --[[------------------------------------------
-    Player Control
-]]--------------------------------------------
-
-hook.Add("StartCommand", "APG_StartCmd", function(ply, mv) -- Allows to control player events before they happen.
-	local predicted_ent = ply.APG_CurrentlyHolding
-	if IsValid(predicted_ent) and (bit.band(mv:GetButtons(),IN_RELOAD) > 0) then
-		mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_RELOAD)))
-	end
-
-	local ent = IsValid(predicted_ent) and predicted_ent or ply:GetEyeTrace().Entity
-	if not IsValid(ent) then return end
-	if not ent.APG_ForceDrop then return end
-
-	local ForceDrop = ent.APG_ForceDrop[ply:SteamID() or ""]
-	if not ForceDrop then return end
-
-	if ForceDrop.time < CurTime() then
-		ForceDrop = nil
-		return
-	end
-
-	if (bit.band(mv:GetButtons(),IN_ATTACK) > 0) and ForceDrop.time > CurTime() and ForceDrop.who == ply then
-		ForceDrop.time = CurTime()+0.11
-		mv:SetButtons(bit.band(mv:GetButtons(),bit.bnot(IN_ATTACK)))
-	end
-end)
-
---[[------------------------------------------
     Entity pickup part
 ]]--------------------------------------------
 
@@ -256,11 +232,6 @@ hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
 
     ent.APG_Picked = true
     ent.APG_Frozen = false
-
-    local sid = ply and ply.SteamID and ply:SteamID()
-
-    ent.APG_ForceDrop = ent.APG_ForceDrop or {}
-    if ent.APG_ForceDrop[sid] then return false end
 
     if ent.APG_HeldBy and ent.APG_HeldBy.plys and not ent.APG_HeldBy.plys[sid] then
         local HasHolder = istable(ent.APG_HeldBy.plys) and (table.Count(ent.APG_HeldBy.plys) > 0)
@@ -278,9 +249,10 @@ hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
         end
     end
 
-    ent.APG_HeldBy = ent.APG_HeldBy or {plys={}}
+    ent.APG_HeldBy = (ent.APG_HeldBy and istable(ent.APG_HeldBy.plys)) and ent.APG_HeldBy or {plys={}}
     ent.APG_HeldBy.plys[ply:SteamID()] = ply
     ent.APG_HeldBy.last = {ply = ply, id = ply:SteamID()}
+
     ply.APG_CurrentlyHolding = ent
 end)
 

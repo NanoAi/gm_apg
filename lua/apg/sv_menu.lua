@@ -6,6 +6,7 @@ local function saveSettings( json )
     if not file.Exists("apg", "DATA") then file.CreateDir( "apg" ) end
     file.Write("apg/settings.txt", json)
 end
+
 local function recSettings( len, ply)
     if not ply:IsSuperAdmin() then return end
 
@@ -46,11 +47,22 @@ hook.Add( "PlayerSay", "openAPGmenu", function( ply, text, public )
     end
 end)
 
+local function checkOwner(ent, ply)
+    if ( IsValid(owner) and owner:IsPlayer() ) then
+        return true
+    else
+        APG.notify("The owner of this entity is NOT a Player. (Owner: " .. type(owner) .. ")", ply)
+        return false
+    end
+end
+
 local function contextCMD(_,ply)
     if not ply:IsSuperAdmin() then return end
 
     local cmd = net.ReadString()
-    local ent = net.ReadEntity() or ply:GetEyeTraceNoCursor().Entity
+    local ent = net.ReadEntity()
+
+    ent = IsValid(ent) and ent or ply:GetEyeTraceNoCursor().Entity or nil
 
     local class = IsValid(ent) and ent.GetClass and ent:GetClass() or nil
     if not class then return end
@@ -68,8 +80,11 @@ local function contextCMD(_,ply)
         APG.cfg.bad_ents.value[class] = nil
         APG.notify("\""..class.."\" removed from the Ghost List!", ply)
     elseif cmd == "clearowner" then
-        if IsValid(owner) then cleanup.CC_Cleanup(owner,"gmod_cleanup",{}) end
+        if not checkOwner(owner, ply) then return end
+        cleanup.CC_Cleanup(owner,"gmod_cleanup",{})
     elseif cmd == "clearunfrozen" then
+        if not checkOwner(owner, ply) then return end
+
         local count = 0
         for _,v in next, ents.GetAll() do
             if not (IsValid(v) and APG.getOwner(v) == owner) then continue end
@@ -79,8 +94,11 @@ local function contextCMD(_,ply)
                 count = count + 1
             end
         end
+
         APG.notify(tostring(count).." entities have been removed!", ply)
     elseif cmd == "getownercount" then
+        if not checkOwner(owner, ply) then return end
+
         local count = 0
         for _,v in next, ents.GetAll() do
             if IsValid(v) and APG.getOwner(v) == owner then

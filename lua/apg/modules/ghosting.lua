@@ -106,6 +106,8 @@ function APG.entGhost( ent, enforce, noCollide )
 		ent.APG_Ghosted = true
 
 		timer.Simple(0, function()
+			if not IsValid(ent) then return end
+			
 			if not ent.APG_oldColor then
 				ent.APG_oldColor = ent:GetColor()
 				if not enforce then

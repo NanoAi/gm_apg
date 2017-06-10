@@ -25,7 +25,7 @@ end
 
 function APG.isBadEnt( ent )
     if not IsValid(ent) then return false end
-
+    if ent.jailWall == true then return false end
     local h = hook.Run("APGisBadEnt", ent)
     if isbool(h) then return h end
 

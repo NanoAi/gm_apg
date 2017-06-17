@@ -77,7 +77,9 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
 
     if wake_target then
         local phys = ent:GetPhysicsObject()
-        phys:Wake()
+        if IsValid(phys) then
+            phys:Wake()
+        end
     end
 
     ent:CollisionRulesChanged()

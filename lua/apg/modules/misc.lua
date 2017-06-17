@@ -26,18 +26,19 @@ local mod = "misc"
     Vehicle damage
 ]]----------------------
 local function isVehDamage(dmg,atk,ent)
-    if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (IsValid(ent) and (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep")) then
+    if not IsValid(ent) then return false end
+    if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep") then
         return true
     end
-    return false
+    return APG.FindWAC(ent) -- Detect WAC Vehicles.
 end
 
 --[[--------------------
     No Collide vehicles on spawn
 ]]----------------------
-APG.hookRegister(mod,"PlayerSpawnedVehicle","APG_noCollideVeh",function( _ , ent)
-    timer.Simple(0.1, function()
-        if APG.cfg["vehNoCollide"].value then
+APG.hookRegister(mod,"OnEntityCreated","APG_noCollideVeh",function(ent)
+    timer.Simple(0.03, function()
+        if APG.cfg["vehNoCollide"].value and (ent:IsVehicle() or APG.FindWAC(ent)) then
             ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
         end
     end)
@@ -50,7 +51,18 @@ APG.hookRegister(mod, "EntityTakeDamage","APG_noPropDmg",function(target, dmg)
     local atk, ent = dmg:GetAttacker(), dmg:GetInflictor()
     if APG.isBadEnt( ent ) or dmg:GetDamageType() == DMG_CRUSH or (APG.cfg["vehDamage"].value and isVehDamage(dmg,atk,ent)) then
         dmg:SetDamage(0)
-        dmg:ScaleDamage( 0 )
+        dmg:ScaleDamage(0)
+        return true -- Returning true overrides and blocks all related damage, it also prevents the hook from running any further preventing unintentional damage from other addons.
+    end
+end)
+
+--[[--------------------
+    Block Physgun Reload
+]]----------------------
+APG.hookRegister(mod, "OnPhysgunReload", "APG_blockPhysgunReload", function(_, ply) 
+    if APG.cfg["blockPhysgunReload"].value then
+        -- APG.notify("Physgun Reloading is Currently Disabled", ply, 1)
+        return false
     end
 end)
 

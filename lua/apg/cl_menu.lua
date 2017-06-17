@@ -14,27 +14,27 @@ local utils = include( "cl_utils.lua" ) or { }
 
 local function APGBuildStackPanel()
     local panel = APG_panels["stack_detection"]
-        panel.Paint = function( i, w, h)
-        end
+    panel.Paint = function( i, w, h) end
+
     utils.numSlider(panel, 0, 40, 500, 20, "Maximum stacked ents", "stackMax", 3, 50, 0 )
     utils.numSlider(panel, 0, 75, 500, 20, "Stack distance (gmod units)", "stackArea", 5, 50, 0)
 end
 
 local function APGBuildMiscPanel()
     local panel = APG_panels["misc"]
-        panel.Paint = function( i, w, h)
-        end
+    panel.Paint = function( i, w, h) end
+
     utils.switch( panel, 0, 40, 395, 20, "Auto freeze over time", "autoFreeze" )
     utils.numSlider(panel, 0, 70, 500, 20, "Auto freeze delay(seconds)", "autoFreezeTime", 5, 600, 0 )
     utils.switch( panel, 0, 100, 395, 20, "Disable vehicle damages", "vehDamage" )
     utils.switch( panel, 0, 130, 395, 20, "Disable vehicle collisions (with players)", "vehNoCollide" )
+    utils.switch( panel, 0, 160, 395, 20, "Block Physgun Reload", "blockPhysgunReload" )
     --APG_numSlider(panel, 0, 75, 500, 20, "Vehicle NoCollide", "vehNoCollide", 5, 50, 0)
 end
 
 local function APGBuildLagPanel()
     local panel = APG_panels["lag_detection"]
-        panel.Paint = function( i, w, h)
-        end
+    panel.Paint = function( i, w, h) end
 
     utils.numSlider(panel, 0, 40, 500, 20, "Lag threshold (%)", "lagTrigger", 5, 1000, 0 )
     utils.numSlider(panel, 0, 75, 500, 20, "Frames lost", "lagsCount", 1, 20, 0)
@@ -42,18 +42,25 @@ local function APGBuildLagPanel()
     utils.comboBox(panel, 0, 145, 500, 20, "Lag fix function", "lagFunc", APG_lagFuncs)
     utils.numSlider(panel, 0, 180, 500, 20, "Lag func. delay (seconds)", "lagFuncTime", 1, 300, 0)
     --utils.numSlider(panel, 0, 215, 500, 20, "Notification mode ", "lagFuncNotify", 0, 2, 0)
+end
 
+local function APGBuildToolHackPanel()
+    local panel = APG_panels["tool_hacks"]
+    panel.Paint = function( i, w, h)
+        draw.DrawText( "Adds hooks to tools and more!", "APG_title2_font", w-150, h-10, Color( 189, 189, 189), 3 )
+    end
 end
 
 local function APGBuildGhostPanel()
     local panel = APG_panels["ghosting"]
-        panel.Paint = function( i, w, h)
-            draw.RoundedBox(0,0,37,170,135,Color( 38, 38, 38, 255))
-            draw.DrawText( "Ghosting color :", "APG_element_font",5, 37, Color( 189, 189, 189), 3 )
+    panel.Paint = function( i, w, h)
+        draw.RoundedBox(0,0,37,170,135,Color( 38, 38, 38, 255))
+        draw.DrawText( "Ghosting color:", "APG_element_font",5, 37, Color( 189, 189, 189), 3 )
 
-            draw.RoundedBox(0,175,37,250,250,Color( 38, 38, 38, 255))
-            draw.DrawText( "Bad entities :", "APG_element_font",180, 37, Color( 189, 189, 189), 3 )
-        end
+        draw.RoundedBox(0,175,37,250,250,Color( 38, 38, 38, 255))
+        draw.DrawText( "Bad entities:", "APG_element_font", 180, 37, Color( 189, 189, 189), 3 )
+        draw.DrawText( "(Right-Click to Toggle)", "APG_title2_font", 280, 38, Color( 189, 189, 189), 3 )
+    end
     utils.switch( panel, 0, 180, 170, 20, "Always frozen", "alwaysFrozen" )
 
     local Mixer = vgui.Create( "CtrlColor", panel )
@@ -64,77 +71,89 @@ local function APGBuildGhostPanel()
     end
 
     local dList = vgui.Create("DListView", panel)
+    dList:Clear()
+    dList:SetPos( 180, 55 )
+    dList:SetSize(panel:GetWide() - 185, panel:GetTall()-5-55)
+    dList:SetMultiSelect(false)
+    dList:SetHideHeaders(false)
+    dList:AddColumn("Class")
+    dList:AddColumn("Exact")
+
+    function dList:OnRowRightClick( id, line )
+        local key = line:GetColumnText(1)
+        local value = !tobool(line:GetColumnText(2))
+        line:SetColumnText(2, value)
+        APG.cfg["bad_ents"].value[key] = value
+    end
+
+    local function updtTab()
         dList:Clear()
-        dList:SetPos( 180, 55 )
-        dList:SetSize(panel:GetWide() - 185, panel:GetTall()-5-55)
-        dList:SetMultiSelect(false)
-        dList:SetHideHeaders(false)
-        dList:AddColumn("Class")
-        dList:AddColumn("Exact")
+        for class,complete in pairs(APG.cfg["bad_ents"].value) do
+            dList:AddLine(class, complete)
+        end
+    end
+    updtTab()
 
-        local function updtTab()
-            dList:Clear()
-            for class,complete in pairs(APG.cfg["bad_ents"].value) do
-                dList:AddLine(class, complete)
-            end
-        end
-        updtTab()
+    dList.Paint = function(i,w,h)
+        draw.RoundedBox(0,0,0,w,h,Color(150, 150, 150, 255))
+    end
+    dList.VBar.Paint = function(i,w,h)
+        surface.SetDrawColor(88, 110, 110, 240)
+        surface.DrawRect(0,0,w,h)
+    end
+    dList.VBar.btnGrip.Paint = function(i,w,h)
+        surface.SetDrawColor(255, 83, 13,50)
+        surface.DrawRect(0,0,w,h)
+        draw.RoundedBox( 0, 1,1,w-2,h-2, Color( 72, 89, 89, 255 ) )
+    end
+    dList.VBar.btnUp.Paint = function(i,w,h)
+        draw.RoundedBox( 0, 0,0,w,h, Color( 72, 89, 89, 240 ) )
+    end
+    dList.VBar.btnDown.Paint = function(i,w,h)
+        draw.RoundedBox( 0, 0,0,w,h, Color( 72, 89, 89, 240 ) )
+    end
 
-        dList.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color(150, 150, 150, 255))
-        end
-        dList.VBar.Paint = function(i,w,h)
-            surface.SetDrawColor(88, 110, 110, 240)
-            surface.DrawRect(0,0,w,h)
-        end
-        dList.VBar.btnGrip.Paint = function(i,w,h)
-            surface.SetDrawColor(255, 83, 13,50)
-            surface.DrawRect(0,0,w,h)
-            draw.RoundedBox( 0, 1,1,w-2,h-2, Color( 72, 89, 89, 255 ) )
-        end
-        dList.VBar.btnUp.Paint = function(i,w,h)
-            draw.RoundedBox( 0, 0,0,w,h, Color( 72, 89, 89, 240 ) )
-        end
-        dList.VBar.btnDown.Paint = function(i,w,h)
-            draw.RoundedBox( 0, 0,0,w,h, Color( 72, 89, 89, 240 ) )
-        end
     local TextEntry = vgui.Create( "DTextEntry", panel )
-        TextEntry:SetPos( 180, 240 )
-        TextEntry:SetSize( 150,20 )
-        TextEntry:SetText( "Entity class" )
-        TextEntry.OnEnter = function( self )
-            chat.AddText( self:GetValue() )
-        end
+    TextEntry:SetPos( 180, 240 )
+    TextEntry:SetSize( 150,20 )
+    TextEntry:SetText( "Entity class" )
+    TextEntry.OnEnter = function( self )
+        chat.AddText( self:GetValue() )
+    end
+
     local Add = vgui.Create( "DButton" , panel)
-        Add:SetPos( 320, 240 )
-        Add:SetSize( 75,20 )
-        Add:SetText( "Add" )
-        Add.DoClick = function()
-            if TextEntry:GetValue() == "Entity class" then return end
-            utils.addBadEntity( TextEntry:GetValue() )
+    Add:SetPos( 320, 240 )
+    Add:SetSize( 75,20 )
+    Add:SetText( "Add" )
+    Add.DoClick = function()
+        if TextEntry:GetValue() == "Entity class" then return end
+        utils.addBadEntity( TextEntry:GetValue() )
+        updtTab()
+    end
+
+    Add:SetTextColor(Color(255,255,255))
+    Add.Paint = function(i,w,h)
+        draw.RoundedBox(0,0,0,w,h,Color(44, 55, 55, 240))
+        draw.RoundedBox(0,1,1,w-2,h-2,Color( 58, 58, 58, 255))
+    end
+
+    local Remove = vgui.Create( "DButton" , panel)
+    Remove:SetPos( 180, 260 )
+    Remove:SetSize( 215,20 )
+    Remove:SetText( "Remove selected" )
+    Remove.DoClick = function()
+        for k,v in pairs(dList:GetSelected()) do
+            local key = v:GetValue(1)
+            APG.cfg["bad_ents"].value[key] = nil
             updtTab()
         end
-        Add:SetTextColor(Color(255,255,255))
-        Add.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color(44, 55, 55, 240))
-            draw.RoundedBox(0,1,1,w-2,h-2,Color( 58, 58, 58, 255))
-        end
-    local Remove = vgui.Create( "DButton" , panel)
-        Remove:SetPos( 180, 260 )
-        Remove:SetSize( 215,20 )
-        Remove:SetText( "Remove selected" )
-        Remove.DoClick = function()
-            for k,v in pairs(dList:GetSelected()) do
-                local key = v:GetValue(1)
-                APG.cfg["bad_ents"].value[key] = nil
-                updtTab()
-            end
-        end
-        Remove:SetTextColor(Color(255,255,255))
-        Remove.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color( 58, 58, 58, 255))
-            draw.RoundedBox(0,0,0,w,1,Color(30, 30, 30, 125))
-        end
+    end
+
+    Remove:SetTextColor(Color(255,255,255))
+    Remove.Paint = function(i,w,h)
+        draw.RoundedBox(0,0,0,w,h,Color( 58, 58, 58, 255))
+        draw.RoundedBox(0,0,0,w,1,Color(30, 30, 30, 125))
+    end
 end
 
 
@@ -145,6 +164,8 @@ local function openMenu( len )
     local settings = net.ReadData( len )
     settings = util.Decompress( settings )
     settings = util.JSONToTable( settings )
+
+    APG.cfg = settings.cfg
     table.Merge(APG, settings)
 
     local APG_Main = vgui.Create( "DFrame" )
@@ -173,31 +194,33 @@ local function openMenu( len )
             draw.DrawText( "✕", "APG_sideBar_font",0, -2, Color( 189, 189, 189), 3 )
         end
     local saveButton = vgui.Create("DButton",APG_Main)
-        saveButton:SetPos(APG_Main:GetWide() - 96,4)
-        saveButton:SetSize(72,16)
-        saveButton:SetText('')
-        saveButton.DoClick = function()
-            local settings = APG
-            settings = util.TableToJSON( settings )
-            settings = util.Compress( settings )
-            net.Start("apg_settings_c2s")
-                net.WriteUInt( settings:len(), 32 ) -- Write the length of the data
-                net.WriteData( settings, settings:len() ) -- Write the data
-            net.SendToServer()
-            APG_Main:Remove()
-        end
-        saveButton.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color(255, 255, 255,3))
-            draw.DrawText( "Save settings", "APG_title2_font",w/2, 1, Color( 189, 189, 189), 1 )
-        end
+    saveButton:SetPos(APG_Main:GetWide() - 96,4)
+    saveButton:SetSize(72,16)
+    saveButton:SetText('')
+    saveButton.DoClick = function()
+        local settings = APG
+        settings = util.TableToJSON( settings )
+        settings = util.Compress( settings )
+        net.Start("apg_settings_c2s")
+            net.WriteUInt( settings:len(), 32 ) -- Write the length of the data
+            net.WriteData( settings, settings:len() ) -- Write the data
+        net.SendToServer()
+        APG_Main:Remove()
+    end
+    saveButton.Paint = function(i,w,h)
+        draw.RoundedBox(0,0,0,w,h,Color(255, 255, 255,3))
+        draw.DrawText( "Save settings", "APG_title2_font",w/2, 1, Color( 189, 189, 189), 1 )
+    end
+
     -- Side bar
     local sidebar = vgui.Create("DPanel",APG_Main)
-        sidebar:SetSize( APG_Main:GetWide() / 4 , APG_Main:GetTall() - 35)
-        sidebar:SetPos(0,30)
-        sidebar.Paint = function(i,w,h)
-            draw.RoundedBox(0,0,0,w,h,Color( 33, 33, 33,255))
-            draw.RoundedBox(0,w-1,0,1,h,main_color)
-        end
+    sidebar:SetSize( APG_Main:GetWide() / 4 , APG_Main:GetTall() - 35)
+    sidebar:SetPos(0,30)
+    sidebar.Paint = function(i,w,h)
+        draw.RoundedBox(0,0,0,w,h,Color( 33, 33, 33,255))
+        draw.RoundedBox(0,w-1,0,1,h,main_color)
+    end
+
     local x,y = APG_Main:GetWide() - 150,APG_Main:GetTall() - 35
     local px, py = 145,30
     local first = true
@@ -211,23 +234,23 @@ local function openMenu( len )
         first = false
 
         local button = vgui.Create("DButton",panel)
-            button:SetPos(0,0)
-            button:SetSize(panel:GetWide(),35)
-            button:SetText("")
-            button.UpdateColours = function( label, skin )
-                label:SetTextStyleColor( Color( 189, 189, 189 ) )
-            end
-            button.Paint = function(slf, w, h)
-                local enabled = APG.modules[k]
+        button:SetPos(0,0)
+        button:SetSize(panel:GetWide(),35)
+        button:SetText("")
+        button.UpdateColours = function( label, skin )
+            label:SetTextStyleColor( Color( 189, 189, 189 ) )
+        end
+        button.Paint = function(slf, w, h)
+            local enabled = APG.modules[k]
 
-                draw.RoundedBox(0,0,h*0.85,w-5,1, Color(0, 96, 0,255))
-                local text = utils.getNiceName(k) .. " module "
-                draw.DrawText( text, "APG_mainPanel_font",5, 8, Color( 189, 189, 189), 3 )
-                utils.mainSwitch( w-48, 7.5, enabled )
-            end
-            button.DoClick = function()
-                APG.modules[k] = not APG.modules[k]
-            end
+            draw.RoundedBox(0,0,h*0.85,w-5,1, Color(0, 96, 0,255))
+            local text = utils.getNiceName(k) .. " module "
+            draw.DrawText( text, "APG_mainPanel_font",5, 8, Color( 189, 189, 189), 3 )
+            utils.mainSwitch( w-48, 7.5, enabled )
+        end
+        button.DoClick = function()
+            APG.modules[k] = not APG.modules[k]
+        end
     end
 
     local i = 0
@@ -266,6 +289,108 @@ local function openMenu( len )
     APGBuildGhostPanel()
     APGBuildLagPanel()
     APGBuildStackPanel()
+    APGBuildToolHackPanel()
 end
 
 net.Receive( "apg_menu_s2c", openMenu )
+
+local function showNotice()
+    local level = tonumber(net.ReadUInt(3))
+    local msg = tostring(net.ReadString())
+
+    icon = level == 0 and NOTIFY_GENERIC or level == 1 and NOTIFY_CLEANUP or level == 2 and NOTIFY_ERROR
+
+    notification.AddLegacy(msg, icon, 3+(level*3))
+    surface.PlaySound(level == 1 and "buttons/button10.wav" or level == 2 and "ambient/alarms/klaxon1.wav" or "buttons/button15.wav")
+
+    MsgC(level == 0 and Color(0,255,0) or Color(255,191,0), "[APG] ", Color(255,255,255), msg,"\n")
+end
+
+net.Receive( "apg_notice_s2c", showNotice )
+
+properties.Add( "apgoptions", {
+    MenuLabel = "APG Options", -- Name to display on the context menu
+    Order = 9999, -- The order to display this property relative to other properties
+    MenuIcon = "icon16/fire.png", -- The icon to display next to the property
+
+    Filter = function( self, ent, ply ) -- A function that determines whether an entity is valid for this property
+        if not ply:IsSuperAdmin() then return false end
+        return (ent.GetClass and ent:GetClass() and IsValid(ent) and ent:EntIndex() > 0)
+    end,
+    MenuOpen = function( self, option, ent, tr )
+        local submenu = option:AddSubMenu()
+        local function addoption(str, data)
+            local menu = submenu:AddOption(str, data.callback)
+
+            if data.icon then
+                menu:SetImage( data.icon )
+            end
+
+            return menu
+        end
+
+        addoption( "Sleep entities of this Class", {
+            icon = "icon16/clock.png",
+            callback = function() self:APGcmd(ent, "sleepclass") end,
+        })
+
+        addoption( "Freeze entities of this Class", {
+            icon = "icon16/bell_delete.png",
+            callback = function() self:APGcmd(ent, "freezeclass") end,
+        })
+
+        submenu:AddSpacer()
+
+        addoption( "Cleanup Owner - Unfrozens", {
+            icon = "icon16/cog_delete.png",
+            callback = function() self:APGcmd(ent, "clearunfrozen") end,
+        })
+
+        addoption( "Cleanup Owner", {
+            icon = "icon16/bin_closed.png",
+            callback = function() self:APGcmd(ent, "clearowner") end,
+        })
+
+        submenu:AddSpacer()
+
+        addoption( "Get Owner SteamID", {
+            icon = "icon16/user.png",
+            callback = function() self:APGcmd(ent, "getownerid") end,
+        })
+
+        addoption( "Get Owner Entity Count", {
+            icon = "icon16/brick.png",
+            callback = function() self:APGcmd(ent, "getownercount") end,
+        })
+
+        submenu:AddSpacer()
+
+        addoption( "Add this entity class to the Ghosting List", {
+            icon = "icon16/cross.png",
+            callback = function() self:APGcmd(ent, "addghost") end,
+        })
+
+        addoption( "Remove this entity class from the Ghosting List", {
+            icon = "icon16/tick.png",
+            callback = function() self:APGcmd(ent, "remghost") end, 
+        })
+    end,
+    Action = function( self, ent ) end,
+    APGcmd = function(self, ent, cmd)
+        if cmd == "getownerid" then
+            local owner, _ = ent:CPPIGetOwner()
+            if IsValid(owner) and owner.SteamID then
+                local id = tostring(owner:SteamID())
+                SetClipboardText(id)
+                chat.AddText(Color(0,255,0), "\n\""..id.."\" has been copied to your clipboard.\n")
+            else
+               chat.AddText(Color(255,0,0), "\nOops, that's not a Player!\n")
+            end 
+        elseif IsValid(ent) and ent.EntIndex then
+            net.Start("apg_context_c2s")
+                net.WriteString(cmd)
+                net.WriteEntity(ent)
+            net.SendToServer()
+        end
+    end,
+})

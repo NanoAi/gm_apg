@@ -15,7 +15,7 @@
     If you want to configure APG to fit your server needs, you can either modify this file
     or edit the config ingame ( using the chat command : !apg ).
 
- /!\ Be sure to have your server linked on ScriptEnforcer.net ( see the How to install part on addon page )
+    You can now also use "apg" in console!
 
 ]]--------------------------------------------
 APG.cfg = APG.cfg or {}
@@ -23,6 +23,7 @@ APG.modules = APG.modules or {}
 
 --[[----------
     Your very own custom function
+    This function will run whenever lag is detected on your server!
 ]]------------
 function APG.customFunc( notify )
     -- Do something
@@ -42,7 +43,7 @@ if CLIENT then
 end
 
 --[[------------------------------------------
-            DEFAULT SETTINGS -- You CAN edit this part
+            DEFAULT SETTINGS -- You CAN edit this part, but you SHOULDN'T
 ]]--------------------------------------------
 
 local defaultSettings = {}
@@ -50,8 +51,8 @@ defaultSettings.modules = { -- Set to true of false to enable/disable module
     ["ghosting"] = true,
     ["stack_detection"] = true,
     ["lag_detection"] = true,
+    ["tool_hacks"] = true,
     ["misc"] = true,
-    ["method0"] = false -- [In development]
 }
 
 defaultSettings.cfg = {
@@ -64,7 +65,9 @@ defaultSettings.cfg = {
         value = {
             ["prop_physics"] = true,
             ["wire_"] = false,
-            ["gmod_"] = false },
+            ["gmod_"] = false,
+            ["keypad"] = false,
+        },
         desc = "Entities to ghost/control/secure (true if exact name, false if it is a pattern"},
 
     alwaysFrozen = { value = false  , desc = "Set to true to auto freeze props on physgun drop (aka APA_FreezeOnDrop)" },
@@ -74,7 +77,6 @@ defaultSettings.cfg = {
     ]]------------
     stackMax = { value = 20, desc = "Max amount of entities stacked in a small area"},
     stackArea = { value = 15, desc = "Sphere radius for stack detection (gmod units)"},
-
 
     --[[----------
         Lag detection module
@@ -91,10 +93,12 @@ defaultSettings.cfg = {
         MISC
     ]]------------
     --[[ Vehicles ]]--
-    vehDamage = { value = false, desc = "True to disable vehicles damages, true to enable." },
+    vehDamage = { value = false, desc = "True to disable vehicles damages, false to enable." },
     vehNoCollide = { value = false, desc = "True to disable collisions between vehicles and players"},
+    vehIncludeWAC = { value = true, desc = "Check for WAC vehicles."},
 
     --[[ Props related ]]--
+    blockPhysgunReload = { value = false, desc = "Block players from using physgun reload"},
     autoFreeze = { value = false, desc = "Freeze every unfrozen prop each X seconds" },
     autoFreezeTime = { value = 120, desc = "Auto freeze timer (seconds)"},
 }
@@ -103,8 +107,43 @@ defaultSettings.cfg = {
         LOADING SAVED SETTINGS -- DO NOT EDIT THIS PART
 ]]--------------------------------------------
 if SERVER and file.Exists( "apg/settings.txt", "DATA" ) then
+    table.Merge( APG, defaultSettings ) -- Load the default settings first!
+
     local settings = file.Read( "apg/settings.txt", "DATA" )
     settings = util.JSONToTable( settings )
+
+    if not settings.modules or not settings.cfg then
+        ErrorNoHalt("Your custom settings have not been loaded because you have a misconfigured settings file! The default settings were used instead!")
+        return
+    end
+
+    local removedSetting = {}
+
+    for k, v in next, settings.modules do
+        if defaultSettings.modules[k] == nil then
+            settings.modules[k] = nil
+            table.insert(removedSetting, k)
+        end
+    end
+
+    for k, v in next, settings.cfg do
+        if defaultSettings.cfg[k] == nil then
+            settings.cfg[k] = nil
+            table.insert(removedSetting, k)
+        end
+    end
+
+    if next(removedSetting) then
+        print("[APG] Settings File Updated. (Conflicts Resolved)")
+        print("[APG] The Following Settings Have Been Removed: ")
+        for _,v in next, removedSetting do
+            print("\t> \""..tostring(v).."\" has been removed.")
+        end
+
+        removedSetting = nil
+        file.Write("apg/settings.txt", util.TableToJSON(settings))
+    end
+
     table.Merge( APG, settings )
 else
     table.Merge( APG, defaultSettings )

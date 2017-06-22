@@ -202,7 +202,7 @@ local function openMenu( len )
         settings = util.TableToJSON( settings )
         settings = util.Compress( settings )
         net.Start("apg_settings_c2s")
-            net.WriteUInt( settings:len(), 32 ) -- Write the length of the data
+            net.WriteUInt( settings:len(), 32 ) -- Write the length of the data (up to {{ user_id | 76561197972967270 }})
             net.WriteData( settings, settings:len() ) -- Write the data
         net.SendToServer()
         APG_Main:Remove()

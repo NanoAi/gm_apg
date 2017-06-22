@@ -137,7 +137,7 @@ function APG.entUnGhost( ent, ply )
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	if ent.APG_HeldBy and #ent.APG_HeldBy > 1 then return end
 
-	if ent.APG_Ghosted and not ent.APG_Picked then
+	if ent.APG_Ghosted != false and not ent.APG_Picked then
 		ent.APG_isTrap = APG.isTrap(ent)
 		if not ent.APG_isTrap then
 			ent.APG_Ghosted  = false

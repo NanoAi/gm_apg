@@ -218,8 +218,10 @@ end)
 APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	if not IsValid( ent ) then return end
-
-	APG.entGhost( ent )
+	
+	timer.Simple(0, function()
+		APG.entGhost( ent )
+	end)
 
 	timer.Simple(0, function()
 		local owner = APG.getOwner( ent )

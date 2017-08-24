@@ -30,17 +30,15 @@ local mod = "lag_detection"
 --[[--------------------
     Lag fixing functions
 ]]----------------------
--- cleanup_all
--- cleanup_unfrozen
--- ghost_unfrozen
--- freeze_unfrozen
--- custom_function
-local lagFix = {}
-lagFix.cleanup_all = function( notify ) APG.cleanUp( "all", notify ) end
-lagFix.cleanup_unfrozen = function( notify ) APG.cleanUp( "unfrozen", notify ) end
-lagFix.ghost_unfrozen = APG.ghostThemAll
-lagFix.freeze_unfrozen = APG.freezeProps
-lagFix.custom_function = APG.customFunc
+
+local lagFix = {
+    cleanup_all = function( notify ) APG.cleanUp( "all", notify ) end,
+    cleanup_unfrozen = function( notify ) APG.cleanUp( "unfrozen", notify ) end,
+    ghost_unfrozen = APG.ghostThemAll,
+    freeze_unfrozen = APG.freezeProps,
+    smart_cleanup = APG.smartCleanup,
+    custom_function = APG.customFunc,
+}
 
 --[[--------------------
         Utils

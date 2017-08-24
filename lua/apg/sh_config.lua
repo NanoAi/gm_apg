@@ -38,6 +38,7 @@ if CLIENT then
         "cleanup_unfrozen", -- Cleanup only unfrozen stuff
         "ghost_unfrozen", -- Ghost unfrozen stuff
         "freeze_unfrozen", -- Freeze unfrozen stuff
+        "smart_cleanup", -- Cleanup unfrozen fading doors, freeze unfrozens, remove large stacks
         "custom_function" -- Your custom function (see APG.customFunc)
     } -- THIS IS INFORMATIVE PURPOSE ONLY !
 end
@@ -51,8 +52,8 @@ defaultSettings.modules = { -- Set to true of false to enable/disable module
     ["ghosting"] = true,
     ["stack_detection"] = true,
     ["lag_detection"] = true,
-    ["tool_hacks"] = true,
     ["misc"] = true,
+    ["misc2"] = true,
 }
 
 defaultSettings.cfg = {
@@ -88,7 +89,6 @@ defaultSettings.cfg = {
     lagFuncTime = { value = 20, desc = "Time (seconds) between 2 anti lag function (avoid spam)"},
     lagFuncNotify = { value = 2, desc = "Notify : 0 - Disabled, 1 - Everyone, 2 - Admins only"}, -- Available soon
 
-
     --[[----------
         MISC
     ]]------------
@@ -101,6 +101,11 @@ defaultSettings.cfg = {
     blockPhysgunReload = { value = false, desc = "Block players from using physgun reload"},
     autoFreeze = { value = false, desc = "Freeze every unfrozen prop each X seconds" },
     autoFreezeTime = { value = 120, desc = "Auto freeze timer (seconds)"},
+
+    thFadingDoors = { value = true, desc = "Inject custom hooks into Fading Doors" },
+    FadingDoorGhosting = { value = true, desc = "Activate fading door ghosting" },
+    frzr9k = { value = false, desc = "Activate FRZR9K (Sleepy Physics)" },
+    AllowPK = { value = false, desc = "Allow prop killing (Won't work well with ghosting)" }
 }
 
 --[[------------------------------------------

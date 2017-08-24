@@ -47,7 +47,7 @@ hook.Add( "PlayerSay", "openAPGmenu", function( ply, text, public )
     end
 end)
 
-local function checkOwner(ent, ply)
+local function checkOwner(owner, ply)
     if ( IsValid(owner) and owner:IsPlayer() ) then
         return true
     else

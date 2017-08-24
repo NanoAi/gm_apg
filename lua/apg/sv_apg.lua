@@ -8,9 +8,14 @@
     Licensed to : http://steamcommunity.com/id/{{ user_id }}
 
 ]]--------------------------------------------
-util.AddNetworkString("apg_notice_s2c")
 
+util.AddNetworkString("apg_notice_s2c")
 APG = APG or {}
+
+local IsValid = IsValid
+local table = table
+local isentity = isentity
+
 --[[------------------------------------------
             ENTITY Related
 ]]--------------------------------------------
@@ -26,6 +31,8 @@ end
 function APG.isBadEnt( ent )
     if not IsValid(ent) then return false end
     if ent.jailWall == true then return false end
+    if ent.IsWeapon and ent:IsWeapon() then return false end
+
     local h = hook.Run("APGisBadEnt", ent)
     if isbool(h) then return h end
 
@@ -150,6 +157,91 @@ function APG.freezeProps( notify )
     local msg = "Props frozen"
     
     APG.notify(msg, "all", 1)
+end
+
+local function GetPhysenv()
+    local env = physenv.GetPerformanceSettings()
+    local con = {}
+    local vars = {
+        "phys_upimpactforcescale",
+        "phys_impactforcescale",
+        "phys_pushscale",
+        "sv_turbophysics",
+    }
+
+    for _,v in next, vars do
+        local var = GetConVar(v)
+        con[v] = var and var:GetString() or nil
+    end
+
+    return {con = con, env = env}
+end
+
+function APG.smartCleanup( notify )
+    local defaults = GetPhysenv()
+    local phys = table.Copy(defaults.env)
+
+    hook.Add("PlayerSpawnObject", "APG_smartCleanup", function() return false end)
+
+    RunConsoleCommand("phys_upimpactforcescale","0")
+    RunConsoleCommand("phys_impactforcescale",  "0")
+    RunConsoleCommand("phys_pushscale",         "0")
+    RunConsoleCommand("sv_turbophysics",        "1")
+
+    phys.MaxCollisionChecksPerTimestep = 0
+    phys.MaxAngularVelocity = 0
+    phys.MaxVelocity = 0
+    physenv.SetPerformanceSettings(phys)
+
+    local sphere = ents.FindInSphere
+    local all = ents.GetAll()
+    local bad = {}
+
+    for _, v in next, all do
+        if IsValid(v) and v.GetPhysicsObject then
+            local phys = v:GetPhysicsObject()
+            if IsValid(phys) and phys:IsMotionEnabled() then
+                if v.isFadingDoor and APG.isBadEnt(ent) then
+                    SafeRemoveEntity(v)
+                else
+                    table.insert(bad, {ent = v, phys = phys})
+                end
+            end
+        end
+    end
+
+    APG.freezeProps( notify )
+
+    for _, v in next, bad do
+        local count = 0
+
+        local owner = APG.getOwner(v.ent)
+        local space = sphere(v.ent:GetPos(), 7)
+        local cache = {}
+
+        for _, ent in next, space do
+            if owner == APG.getOwner(ent) then
+                count = count + 1
+                table.insert(cache, ent)
+            end
+        end
+
+        if count > 4 then
+            for _, ent in next, cache do
+                if APG.isBadEnt(ent) then
+                    SafeRemoveEntity(ent)
+                end
+            end
+        end
+    end
+
+    timer.Simple(1.5, function() -- Give a few seconds for the engine to catch up.
+        for k,v in next, defaults.con do
+            RunConsoleCommand(k, v)
+        end
+        physenv.SetPerformanceSettings(defaults.env)
+        hook.Remove("PlayerSpawnObject", "APG_smartCleanup")
+    end)
 end
 
 function APG.ForcePlayerDrop(ply, ent)
@@ -285,8 +377,9 @@ hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
     if #ent.APG_HeldBy > 0 then return end
     ent.APG_Picked = false
     
-    if not APG.isBadEnt( ent ) then return end
-    APG.killVelocity(ent,true,false,true) -- Extend to constrained props, and wake target.
+    if APG.isBadEnt( ent ) and not APG.cfg["AllowPK"].value then
+        APG.killVelocity(ent,true,false,true) -- Extend to constrained props, and wake target.
+    end
 end)
 
 --[[--------------------

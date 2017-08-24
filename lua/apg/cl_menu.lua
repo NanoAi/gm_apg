@@ -45,10 +45,13 @@ local function APGBuildLagPanel()
 end
 
 local function APGBuildToolHackPanel()
-    local panel = APG_panels["tool_hacks"]
-    panel.Paint = function( i, w, h)
-        draw.DrawText( "Adds hooks to tools and more!", "APG_title2_font", w-150, h-10, Color( 189, 189, 189), 3 )
-    end
+    local panel = APG_panels["misc2"]
+    panel.Paint = function( i, w, h) end
+
+    utils.switch( panel, 0, 40, 395, 20, "Inject custom hooks into Fading Doors", "thFadingDoors" )
+    utils.switch( panel, 0, 75, 395, 20, "Activate fading door ghosting", "FadingDoorGhosting" )
+    utils.switch( panel, 0, 105, 395, 20, "Activate FRZR9K (Sleepy Physics)", "frzr9k" )
+    utils.switch( panel, 0, 135, 395, 20, "Allow prop killing (Won't work well with ghosting)", "AllowPK" )
 end
 
 local function APGBuildGhostPanel()

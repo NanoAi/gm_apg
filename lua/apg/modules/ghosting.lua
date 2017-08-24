@@ -56,10 +56,12 @@ function PhysObj:EnableMotion( bool )
 	return APG.oEnableMotion( self, bool)
 end
 
-function APG.isTrap( ent )
+function APG.isTrap( ent, output )
 	local check = false
 	local center = ent:LocalToWorld(ent:OBBCenter())
 	local bRadius = ent:BoundingRadius()
+	local cache = {}
+
 	for _,v in next, ents.FindInSphere(center, bRadius) do
 		if (v:IsPlayer() and v:Alive()) then
 			local pos = v:GetPos()
@@ -67,7 +69,11 @@ function APG.isTrap( ent )
 			local tr = util.TraceEntity( trace, v )
 
 			if tr.Entity == ent then
-				check = v
+				if output then
+					table.insert(cache, v)
+				else
+					check = v
+				end
 			end
 		elseif v:IsVehicle() then
 			-- Check if the distance between the spheres centers is less than the sum of their radius.
@@ -76,10 +82,11 @@ function APG.isTrap( ent )
 				check = v
 			end
 		end
+
 		if check then break end
 	end
 
-	return check or false
+	return (output and next(cache) and cache) or (check or false)
 end
 
 function APG.entGhost( ent, enforce, noCollide )
@@ -250,20 +257,24 @@ APG.hookRegister(mod, "CanProperty", "APG_canProperty", function(ply, prop, ent)
 	end
 end)
 
--- Custom Hooks (tool_hacks.lua) -- REWORK THIS!!!!
+-- Custom Hooks --
 
 APG.hookRegister(mod, "APG.FadingDoorToggle", "APG_FadingDoor", function(ent, isFading)
-	if APG.isBadEnt(ent) then
+	if APG.isBadEnt(ent) and APG.cfg["FadingDoorGhosting"].value then
 		local ply = APG.getOwner( ent )
 		if IsValid(ply) then
 			if not isFading then
-				timer.Simple(0, function()
-					ent.APG_isTrap = APG.isTrap(ent)
-					if ent.APG_isTrap then
-						APG.entGhost(ent)
-						APG.notify("There is something in your fading door!", ply, 1)
+				local find = APG.isTrap(ent, true)
+				for _,v in next, find do
+					if v.IsPlayer and v:IsPlayer() then
+						local dir = v:GetForward(); dir.z = 0
+						v:SetCollisionGroup(COLLISION_GROUP_PUSHAWAY)
+						v:SetAbsVelocity((dir * 600) + Vector(0,0,60))
+						timer.Simple(1, function()
+							v:SetCollisionGroup(COLLISION_GROUP_PLAYER)
+						end)
 					end
-				end)
+				end
 			elseif ent.APG_Ghosted then
 				APG.startDJob( "unghost", ent )
 			end

@@ -86,7 +86,11 @@ function APG.isTrap( ent, output )
 		if check then break end
 	end
 
-	return (output and next(cache) and cache) or (check or false)
+	if output then
+		return istable(cache) and cache or {}
+	end
+
+	return check or false
 end
 
 function APG.entGhost( ent, enforce, noCollide )

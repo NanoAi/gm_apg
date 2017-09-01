@@ -28,11 +28,21 @@ local function timerMake(id, delay, times, func)
 	APG.timerRegister(mod, id, delay, times, func)
 end
 
+local function getphys(ent)
+	local phys = IsValid(ent) and ent.GetPhysicsObject and ent:GetPhysicsObject() or false
+	return IsValid(phys) and phys or false
+end
+
 hookAdd("CanTool", "APG_canTool", function(ply, tr, tool)
+	if IsValid(tr.Entity) and tr.Entity.APG_Ghosted then
+		APG.notify("Cannot use tool on ghosted entity!", ply, 1)
+		return false
+	end
 	if APG.cfg["thFadingDoors"].value and tool == "fading_door" then
-		if IsValid(tr.Entity) and not tr.Entity:IsPlayer() then
-			local ent = tr.Entity
-			timer.Simple(0, function()
+		timer.Simple(0, function()
+			if IsValid(tr.Entity) and not tr.Entity:IsPlayer() then
+				local ent = tr.Entity
+
 				if not IsValid(ent) then return end
 				if not ent.isFadingDoor then return end
 
@@ -43,22 +53,38 @@ hookAdd("CanTool", "APG_canTool", function(ply, tr, tool)
 				end
 
 				ent.oldFadeActivate = ent.oldFadeActivate or ent.fadeActivate
+				ent.oldFadeDeactivate = ent.oldFadeDeactivate or ent.fadeDeactivate
+
 				function ent:fadeActivate()
-					if hook.Run("APG.FadingDoorToggle", self, true) then return end
+					if hook.Run("APG.FadingDoorToggle", self, true, ply) then return end
 					ent:oldFadeActivate()
 				end
 
-				ent.oldFadeDeactivate = ent.oldFadeDeactivate or ent.fadeDeactivate
 				function ent:fadeDeactivate()
-					if hook.Run("APG.FadingDoorToggle", self, false) then return end
+					if hook.Run("APG.FadingDoorToggle", self, false, ply) then return end
 					ent:oldFadeDeactivate()
+					ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
 				end
 
 				if state then
 					ent:fadeActivate()
 				end
-			end)
-		end
+			end
+		end)
+	end
+end)
+
+hookAdd("APG.FadingDoorToggle", "init", function(ent, state, ply)
+	if ent.APG_Ghosted then
+		APG.notify("Your fading door is ghosted! (" .. ent.GetModel and ent:GetModel() or "???" .. ")", ply, 1)
+		return true
+	end
+
+	ent:ForcePlayerDrop()
+
+	local phys = getphys(ent)
+	if phys then
+		phys:EnableMotion(false)
 	end
 end)
 
@@ -66,11 +92,6 @@ end)
 
 local zero = Vector(0,0,0)
 local pstop = FrameTime()*3
-
-local function getphys(ent)
-	local phys = IsValid(ent) and ent.GetPhysicsObject and ent:GetPhysicsObject() or false
-	return IsValid(phys) and phys or false
-end
 
 timerMake("frzr9k", pstop, 0, function()
 	if APG.cfg["frzr9k"].value then
@@ -140,12 +161,6 @@ hookAdd("APG.FadingDoorToggle", "frzr9k", function(ent, faded)
 			if notify then
 				o:ChatPrint('[APG] Some of your fading doors were removed.')
 			end
-		else
-			timer.Simple(0, function()
-				ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE_DEBRIS)
-				local phys = getphys(ent)
-				phys:EnableMotion(false)
-			end)
 		end
 	end
 end)

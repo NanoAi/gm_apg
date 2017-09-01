@@ -62,15 +62,9 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
         if not IsValid(phys) then return end
         if freeze then phys:EnableMotion(false) return end
 
-        local collision = phys:IsCollisionEnabled()
-
-        phys:EnableCollisions(false)
-
         phys:SetVelocity(vec)
         phys:SetVelocityInstantaneous(vec)
         phys:AddAngleVelocity(phys:GetAngleVelocity()*-1)
-
-        phys:EnableCollisions(collision)
 
         phys:Sleep()
         phys:RecheckCollisionFilter()
@@ -245,9 +239,13 @@ function APG.smartCleanup( notify )
 end
 
 function APG.ForcePlayerDrop(ply, ent)
-    ply:ConCommand("-attack")
+    if IsValid(ply) then
+        ply:ConCommand("-attack")
+    end
     timer.Simple(0.1, function()
-        ent:ForcePlayerDrop()
+        if IsValid(ent) then
+            ent:ForcePlayerDrop()
+        end
     end)
 end
 

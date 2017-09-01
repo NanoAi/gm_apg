@@ -162,10 +162,15 @@ function APG.entUnGhost( ent, ply )
 			elseif ent.APG_Frozen then
 				newColGroup = COLLISION_GROUP_NONE
 			end
+
 			ent:SetCollisionGroup( newColGroup )
+
+			return true
 		else
 			APG.notify("There is something in this prop!", ply, 1)
 			ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
+
+			return false
 		end
 	end
 end
@@ -266,21 +271,18 @@ end)
 APG.hookRegister(mod, "APG.FadingDoorToggle", "APG_FadingDoor", function(ent, isFading)
 	if APG.isBadEnt(ent) and APG.cfg["FadingDoorGhosting"].value then
 		local ply = APG.getOwner( ent )
-		if IsValid(ply) then
-			if not isFading then
-				local find = APG.isTrap(ent, true)
-				for _,v in next, find do
-					if v.IsPlayer and v:IsPlayer() then
-						local dir = v:GetForward(); dir.z = 0
-						v:SetCollisionGroup(COLLISION_GROUP_PUSHAWAY)
-						v:SetAbsVelocity((dir * 600) + Vector(0,0,60))
-						timer.Simple(1, function()
-							v:SetCollisionGroup(COLLISION_GROUP_PLAYER)
-						end)
-					end
+		
+		if IsValid(ply) and not isFading then
+			local find = APG.isTrap(ent, true)
+			for _,v in next, find do
+				if v.IsPlayer and v:IsPlayer() then
+					local dir = v:GetForward(); dir.z = 0
+					v:SetCollisionGroup(COLLISION_GROUP_PUSHAWAY)
+					v:SetAbsVelocity((dir * 600) + Vector(0,0,60))
+					timer.Simple(1, function()
+						v:SetCollisionGroup(COLLISION_GROUP_PLAYER)
+					end)
 				end
-			elseif ent.APG_Ghosted then
-				APG.startDJob( "unghost", ent )
 			end
 		end
 	end

@@ -213,8 +213,7 @@ APG.hookRegister( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (
 end)
 
 APG.dJobRegister( "unghost", 0.1, 50, function( ent )
-	if not IsValid( ent ) then return end
-	APG.entUnGhost( ent )
+	if IsValid(ent) then APG.entUnGhost( ent ) end
 end)
 
 APG.hookRegister( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent )
@@ -231,14 +230,20 @@ APG.hookRegister( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent 
 	end) -- Apply unghost to all constrained ents
 end)
 
+local function SafeSetCollisionGroup(ent, colgroup, pobj)
+	-- If the entity is being held by a player or is ghosted abort.
+	if ent:IsPlayerHolding() then return end
+	if ent.APG_Ghosted then return end
+
+	if pobj then pobj:Sleep() end
+	ent:SetCollisionGroup(colgroup)
+end
+
 APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	if not IsValid( ent ) then return end
-	
-	timer.Simple(0, function()
-		APG.entGhost( ent )
-	end)
 
+	timer.Simple(0, function() APG.entGhost( ent ) end)
 	timer.Simple(0, function()
 		local owner = APG.getOwner( ent )
 		
@@ -249,7 +254,7 @@ APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
 				pObj:EnableMotion(false)
 			elseif IsValid(pObj) and pObj:IsMoveable() then
 				ent.APG_Frozen = false
-				ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
+				SafeSetCollisionGroup(ent, COLLISION_GROUP_INTERACTIVE)
 			end
 		end
 

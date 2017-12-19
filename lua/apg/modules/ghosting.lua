@@ -146,9 +146,9 @@ end
 
 function APG.entUnGhost( ent, ply )
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
-	if ent.APG_HeldBy and #ent.APG_HeldBy > 1 then return end
+	if ent.APG_Picked or (ent.APG_HeldBy and #ent.APG_HeldBy > 1) then return end
 
-	if ent.APG_Ghosted != false and not ent.APG_Picked then
+	if ent.APG_Ghosted != false then
 		ent.APG_isTrap = APG.isTrap(ent)
 		if not ent.APG_isTrap then
 			ent.APG_Ghosted  = false
@@ -157,6 +157,7 @@ function APG.entUnGhost( ent, ply )
 			ent.APG_oldColor = false
 
 			local newColGroup = COLLISION_GROUP_INTERACTIVE
+
 			if ent.APG_oColGroup == COLLISION_GROUP_WORLD then
 				newColGroup = ent.APG_oColGroup
 			elseif ent.APG_Frozen then
@@ -168,7 +169,7 @@ function APG.entUnGhost( ent, ply )
 			return true
 		else
 			APG.notify("There is something in this prop!", ply, 1)
-			ent:SetCollisionGroup( COLLISION_GROUP_WORLD  )
+			ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 
 			return false
 		end
@@ -246,6 +247,9 @@ APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
 	timer.Simple(0, function() APG.entGhost( ent ) end)
 	timer.Simple(0, function()
 		local owner = APG.getOwner( ent )
+
+		DropEntityIfHeld(ent)
+		ent:ForcePlayerDrop()
 		
 		if IsValid( owner ) and owner:IsPlayer() then
 			local pObj = ent:GetPhysicsObject()

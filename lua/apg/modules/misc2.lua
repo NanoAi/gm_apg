@@ -111,15 +111,34 @@ end)
 local function collcall(ent, data)
 	local hit = data.HitObject
 	local mep = data.PhysObject
+
 	if IsValid(hit) and IsValid(mep) then
-		ent._collisions = (ent._collisions or 0) + 1
-		if ent._collisions > 23 then
-			ent._collisions = 0
+		local time = CurTime() + 5
+		local obj = ent['frzr9k']
+
+		obj.Collisions = (obj.Collisions or 0) + 1
+		obj.LastCollision = obj.LastCollision or CurTime()
+
+		if obj.Collisions > 23 then
+			obj.Collisions = 0
 			mep:SetVelocityInstantaneous(Vector(0,0,0))
 			hit:SetVelocityInstantaneous(Vector(0,0,0))
 			mep:Sleep()
 			hit:Sleep()
 		end
+
+		if time < obj.LastCollision then
+			obj.Collisions = math.max(obj.Collisions - 1, 0)
+		end
+
+		obj.LastCollision = CurTime()
+		MsgN("[APG-DEBUG] " .. tostring(obj) .. " has collided! Hits: " .. obj.Collisions .. "/23 | LastHit: " .. string.NiceTime(obj.LastCollision) .. " ago")
+		
+		print("[APG-DEBUG] --DATA TABLE-- [APG-DEBUG]")
+		PrintTable(obj)
+		print("[APG-DEBUG] --DATA END-- [APG-DEBUG]")
+
+		ent['frzr9k'] = obj
 	end
 end
 

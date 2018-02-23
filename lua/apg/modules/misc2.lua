@@ -76,7 +76,7 @@ end)
 
 hookAdd("APG.FadingDoorToggle", "init", function(ent, state, ply)
 	if ent.APG_Ghosted then
-		APG.notify("Your fading door is ghosted! (" .. ( type(ent.GetModel) == "function" and ent:GetModel() or "???" ) .. ")", ply, 1)
+		APG.notify("Your fading door is ghosted! (" .. ( ent.GetModel and ent:GetModel() or "???" ) .. ")", ply, 1)
 		return true
 	end
 

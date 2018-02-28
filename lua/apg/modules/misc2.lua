@@ -8,14 +8,8 @@
 	Licensed to : http://steamcommunity.com/id/{{ user_id }}
 
 	============================
-	   STACK DETECTION MODULE
+	        MISC2 MODULE
 	============================
-
-	Developper informations :
-	---------------------------------
-	Used variables :
-		stackMax = { value = 20, desc = "Max amount of entities stacked on a small area"}
-		stackArea = { value = 15, desc = "Sphere radius for stack detection (gmod units)"}
 
 ]]--------------------------------------------
 local mod = "misc2"
@@ -94,7 +88,7 @@ local zero = Vector(0,0,0)
 local pstop = FrameTime()*3
 
 timerMake("frzr9k", pstop, 0, function()
-	if APG.cfg["frzr9k"].value then
+	if APG.cfg["sleepyPhys"].value then
 		for _,v in next, ents.GetAll() do
 			local phys = getphys(v)
 			if IsValid(phys) and phys:IsMotionEnabled() and not v:IsPlayerHolding() then
@@ -112,41 +106,50 @@ local function collcall(ent, data)
 	local hit = data.HitObject
 	local mep = data.PhysObject
 
-	if IsValid(hit) and IsValid(mep) then
-		local time = CurTime() + 5
+	if IsValid(ent) and IsValid(hit) and IsValid(mep) then
+		ent['frzr9k'] = ent['frzr9k'] or {}
 		local obj = ent['frzr9k']
 
 		obj.Collisions = (obj.Collisions or 0) + 1
-		obj.LastCollision = obj.LastCollision or CurTime()
+
+		obj.CollisionTime = obj.CollisionTime or (CurTime() + 5)
+		obj.LastCollision = CurTime()
 
 		if obj.Collisions > 23 then
 			obj.Collisions = 0
-			mep:SetVelocityInstantaneous(Vector(0,0,0))
-			hit:SetVelocityInstantaneous(Vector(0,0,0))
-			mep:Sleep()
-			hit:Sleep()
+			for _,e in next, {mep, hit} do
+				e:SetVelocityInstantaneous(Vector(0,0,0))
+				e:Sleep()
+			end
 		end
 
-		if time < obj.LastCollision then
-			obj.Collisions = math.max(obj.Collisions - 1, 0)
-		end
+		if obj.CollisionTime < obj.LastCollision then
+			local subtract = 1
+			local mem = obj.CollisionTime
 
-		obj.LastCollision = CurTime()
-		MsgN("[APG-DEBUG] " .. tostring(obj) .. " has collided! Hits: " .. obj.Collisions .. "/23 | LastHit: " .. string.NiceTime(obj.LastCollision) .. " ago")
-		
-		print("[APG-DEBUG] --DATA TABLE-- [APG-DEBUG]")
-		PrintTable(obj)
-		print("[APG-DEBUG] --DATA END-- [APG-DEBUG]")
+			while true do
+				mem = mem + 5
+				subtract = subtract + 1
+				if mem >= obj.LastCollision then
+					break
+				end
+			end
+
+			obj.Collisions = (obj.Collisions - subtract)
+			obj.Collisions = (obj.Collisions > 1) and obj.Collisions or 1
+
+			obj.CollisionTime = (CurTime() + 5)
+		end
 
 		ent['frzr9k'] = obj
 	end
 end
 
 hookAdd("OnEntityCreated", "frzr9k", function(ent)
-	if APG.cfg["frzr9k"].value then
-		timer.Simple(0.01, function() 
+	if APG.cfg["sleepyPhys"].value and APG.cfg["hookSP"].value then
+		timer.Simple(0.1, function() 
 			if IsValid(ent) and ent.GetPhysicsObject and IsValid(ent:GetPhysicsObject()) then
-				ent:AddCallback("frzr9k", collcall)
+				ent:AddCallback("PhysicsCollide", collcall)
 			end
 		end)
 	end
@@ -154,7 +157,7 @@ end)
 
 -- Requires Fading Door Hooks --
 hookAdd("APG.FadingDoorToggle", "frzr9k", function(ent, faded)
-	if APG.cfg["frzr9k"].value and IsValid(ent) then
+	if APG.cfg["sleepyPhys"].value and IsValid(ent) then
 		if faded then
 			local o = APG.getOwner(ent)
 			local pos = ent:GetPos()

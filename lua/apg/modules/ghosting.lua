@@ -56,7 +56,7 @@ function PhysObj:EnableMotion( bool )
 	return APG.oEnableMotion( self, bool)
 end
 
-function APG.isTrap( ent, output )
+function APG.isTrap( ent, fullscan )
 	local check = false
 	local center = ent:LocalToWorld(ent:OBBCenter())
 	local bRadius = ent:BoundingRadius()
@@ -69,7 +69,7 @@ function APG.isTrap( ent, output )
 			local tr = util.TraceEntity( trace, v )
 
 			if tr.Entity == ent then
-				if output then
+				if fullscan then
 					table.insert(cache, v)
 				else
 					check = v
@@ -86,11 +86,11 @@ function APG.isTrap( ent, output )
 		if check then break end
 	end
 
-	if output then
-		return istable(cache) and cache or {}
+	if fullscan and ( #cache > 0 ) then
+		return cache
+	else
+		return check or false
 	end
-
-	return check or false
 end
 
 function APG.entGhost( ent, enforce, noCollide )
@@ -144,11 +144,11 @@ function APG.entGhost( ent, enforce, noCollide )
 	end
 end
 
-function APG.entUnGhost( ent, ply )
+function APG.entUnGhost( ent, ply, failmsg )
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	if ent.APG_Picked or (ent.APG_HeldBy and #ent.APG_HeldBy > 1) then return end
 
-	if ent.APG_Ghosted != false then
+	if ent.APG_Ghosted == true then
 		ent.APG_isTrap = APG.isTrap(ent)
 		if not ent.APG_isTrap then
 			ent.APG_Ghosted  = false
@@ -168,7 +168,7 @@ function APG.entUnGhost( ent, ply )
 
 			return true
 		else
-			APG.notify("There is something in this prop!", ply, 1)
+			APG.notify((failmsg or "There is something in this prop!"), ply, 1)
 			ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 
 			return false
@@ -194,14 +194,15 @@ APG.hookRegister( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	ent.APG_Picked = true
 
-	APG.entGhost(ent)
-
-	APG.ConstrainApply( ent, function( _ent )
-		if not _ent.APG_Frozen then
-			_ent.APG_Picked = true
-			APG.entGhost( _ent )
-		end
-	end) -- Apply ghost to all constrained ents
+	if not APG.cfg["allowPK"].value then
+		APG.entGhost(ent)
+		APG.ConstrainApply( ent, function( _ent )
+			if not _ent.APG_Frozen then
+				_ent.APG_Picked = true
+				APG.entGhost( _ent )
+			end
+		end) -- Apply ghost to all constrained ents
+	end
 end)
 
 APG.hookRegister( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, ent, object)
@@ -278,22 +279,48 @@ end)
 -- Custom Hooks --
 
 APG.hookRegister(mod, "APG.FadingDoorToggle", "APG_FadingDoor", function(ent, isFading)
-	if APG.isBadEnt(ent) and APG.cfg["FadingDoorGhosting"].value then
+	if APG.isBadEnt(ent) and APG.cfg["fadingDoorGhosting"].value then
 		local ply = APG.getOwner( ent )
-		
-		if IsValid(ply) and not isFading then
-			local find = APG.isTrap(ent, true)
-			for _,v in next, find do
-				if v.IsPlayer and v:IsPlayer() then
-					local dir = v:GetForward(); dir.z = 0
-					v:SetCollisionGroup(COLLISION_GROUP_PUSHAWAY)
-					v:SetAbsVelocity((dir * 600) + Vector(0,0,60))
+
+		if (IsValid(ply) and not isFading) then
+			timer.Simple(0.001, function()
+				local istrap = APG.isTrap(ent, true)
+
+				if IsValid(istrap[1]) then
+					APG.notify("Something is blocking your fading door! (Attempting Unstuck)", ply, 1)
+					ent.APG_Ghosted = true
+
+					timer.Simple(0.01, function()
+						ent:SetCollisionGroup(COLLISION_GROUP_WORLD)
+						for _,v in next, istrap do
+							if v:IsPlayer() then
+								local push = v:GetForward()
+								push = push * 1200
+								push.z = 60
+
+								v:SetVelocity(push)
+							end
+						end
+					end)
+
 					timer.Simple(1, function()
-						v:SetCollisionGroup(COLLISION_GROUP_PLAYER)
+						if IsValid(ply) and IsValid(ent) then
+							local istrap = APG.isTrap(ent)
+							ent.APG_Ghosted = false
+
+							ent:oldFadeDeactivate()
+							ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
+
+							if IsValid(istrap) then
+								APG.notify("Unable to unstuck objects from fading door!", ply, 1)
+								APG.entGhost(ent)
+							end
+						end
 					end)
 				end
-			end
+			end)
 		end
+
 	end
 end)
 

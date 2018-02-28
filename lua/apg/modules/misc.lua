@@ -49,7 +49,7 @@ end)
 ]]----------------------
 APG.hookRegister(mod, "EntityTakeDamage","APG_noPropDmg",function(target, dmg)
     local atk, ent = dmg:GetAttacker(), dmg:GetInflictor()
-    if not APG.cfg["AllowPK"].value then
+    if not APG.cfg["allowPK"].value then
         if APG.isBadEnt( ent ) or dmg:GetDamageType() == DMG_CRUSH or (APG.cfg["vehDamage"].value and isVehDamage(dmg,atk,ent)) then
             dmg:SetDamage(0)
             dmg:ScaleDamage(0)

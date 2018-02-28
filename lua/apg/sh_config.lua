@@ -103,9 +103,10 @@ defaultSettings.cfg = {
     autoFreezeTime = { value = 120, desc = "Auto freeze timer (seconds)"},
 
     thFadingDoors = { value = true, desc = "Inject custom hooks into Fading Doors" },
-    FadingDoorGhosting = { value = true, desc = "Activate fading door ghosting" },
-    frzr9k = { value = false, desc = "Activate FRZR9K (Sleepy Physics)" },
-    AllowPK = { value = false, desc = "Allow prop killing (Won't work well with ghosting)" }
+    fadingDoorGhosting = { value = true, desc = "Activate fading door ghosting" },
+    sleepyPhys = { value = false, desc = "Activate FRZR9K (Sleepy Physics)" },
+    hookSP = { value = false, desc = "Hook FRZR9K into collision (Experimental)"},
+    allowPK = { value = false, desc = "Allow prop killing" }
 }
 
 --[[------------------------------------------

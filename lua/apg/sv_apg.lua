@@ -242,11 +242,9 @@ function APG.ForcePlayerDrop(ply, ent)
     if IsValid(ply) then
         ply:ConCommand("-attack")
     end
-    timer.Simple(0.1, function()
-        if IsValid(ent) then
-            ent:ForcePlayerDrop()
-        end
-    end)
+    if IsValid(ent) then
+        ent:ForcePlayerDrop()
+    end
 end
 
 function APG.blockPickup( ply )
@@ -375,7 +373,7 @@ hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
     if #ent.APG_HeldBy > 0 then return end
     ent.APG_Picked = false
     
-    if APG.isBadEnt( ent ) and not APG.cfg["AllowPK"].value then
+    if APG.isBadEnt( ent ) and not APG.cfg["allowPK"].value then
         APG.killVelocity(ent,true,false,true) -- Extend to constrained props, and wake target.
     end
 end)

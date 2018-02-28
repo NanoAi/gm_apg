@@ -49,9 +49,9 @@ local function APGBuildToolHackPanel()
     panel.Paint = function( i, w, h) end
 
     utils.switch( panel, 0, 40, 395, 20, "Inject custom hooks into Fading Doors", "thFadingDoors" )
-    utils.switch( panel, 0, 75, 395, 20, "Activate fading door ghosting", "FadingDoorGhosting" )
-    utils.switch( panel, 0, 105, 395, 20, "Activate FRZR9K (Sleepy Physics)", "frzr9k" )
-    utils.switch( panel, 0, 135, 395, 20, "Allow prop killing (Won't work well with ghosting)", "AllowPK" )
+    utils.switch( panel, 0, 75, 395, 20, "Activate FRZR9K (Sleepy Physics)", "sleepyPhys" )
+    utils.switch( panel, 0, 110, 395, 20, "Hook FRZR9K into collision (Experimental)", "hookSP" )
+    utils.switch( panel, 0, 145, 395, 20, "Allow prop killing", "allowPK" )
 end
 
 local function APGBuildGhostPanel()
@@ -65,6 +65,7 @@ local function APGBuildGhostPanel()
         draw.DrawText( "(Right-Click to Toggle)", "APG_title2_font", 280, 38, Color( 189, 189, 189), 3 )
     end
     utils.switch( panel, 0, 180, 170, 20, "Always frozen", "alwaysFrozen" )
+    utils.switch( panel, 0, 215, 170, 20, "Apply to doors", "fadingDoorGhosting" )
 
     local Mixer = vgui.Create( "CtrlColor", panel )
     Mixer:SetPos(5,55)
@@ -297,14 +298,20 @@ end
 
 net.Receive( "apg_menu_s2c", openMenu )
 
+local canPlaySound = CreateClientConVar("cl_apgalert", "1", true)
+
 local function showNotice()
     local level = tonumber(net.ReadUInt(3))
     local msg = tostring(net.ReadString())
 
+    if string.Trim(msg) == "" then return end
     icon = level == 0 and NOTIFY_GENERIC or level == 1 and NOTIFY_CLEANUP or level == 2 and NOTIFY_ERROR
 
     notification.AddLegacy(msg, icon, 3+(level*3))
-    surface.PlaySound(level == 1 and "buttons/button10.wav" or level == 2 and "ambient/alarms/klaxon1.wav" or "buttons/button15.wav")
+
+    if canPlaySound:GetBool() then
+        surface.PlaySound(level == 1 and "buttons/button10.wav" or level == 2 and "ambient/alarms/klaxon1.wav" or "buttons/button15.wav")
+    end
 
     MsgC(level == 0 and Color(0,255,0) or Color(255,191,0), "[APG] ", Color(255,255,255), msg,"\n")
 end

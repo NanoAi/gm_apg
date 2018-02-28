@@ -99,6 +99,7 @@ defaultSettings.cfg = {
 
     --[[ Props related ]]--
     blockPhysgunReload = { value = false, desc = "Block players from using physgun reload"},
+    blockContraptionMove = { value = false, desc = "Block players from moving contraptions" },
     autoFreeze = { value = false, desc = "Freeze every unfrozen prop each X seconds" },
     autoFreezeTime = { value = 120, desc = "Auto freeze timer (seconds)"},
 

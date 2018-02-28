@@ -51,24 +51,23 @@ function APG.getOwner( ent )
     return owner
 end
 
+local function killvel(phys, freeze)
+    local vec = Vector()
+    if not IsValid(phys) then return end
+    if freeze then phys:EnableMotion(false) return end
+
+    phys:SetVelocity(vec)
+    phys:SetVelocityInstantaneous(vec)
+    phys:AddAngleVelocity(phys:GetAngleVelocity()*-1)
+
+    phys:Sleep()
+    phys:RecheckCollisionFilter()
+end
+
 function APG.killVelocity(ent, extend, freeze, wake_target)
     local vec = Vector()
-
     if ent.GetClass and ent:GetClass() == "player" then ent:SetVelocity(ent:GetVelocity()*-1) return end
-    
     ent:SetVelocity(vec)
-
-    local function killvel(phys, freeze)
-        if not IsValid(phys) then return end
-        if freeze then phys:EnableMotion(false) return end
-
-        phys:SetVelocity(vec)
-        phys:SetVelocityInstantaneous(vec)
-        phys:AddAngleVelocity(phys:GetAngleVelocity()*-1)
-
-        phys:Sleep()
-        phys:RecheckCollisionFilter()
-    end
 
     for i = 0, ent:GetPhysicsObjectCount() do killvel(ent:GetPhysicsObjectNum(i), freeze) end -- Includes self?
 
@@ -84,6 +83,20 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
     end
 
     ent:CollisionRulesChanged()
+end
+
+function APG.freezeIt( ent, extend )
+    local obj = ent:GetPhysicsObject()
+    if extend then
+        for _,v in next, constraint.GetAllConstrainedEntities(ent) do 
+            killvel(v:GetPhysicsObject(), true)
+        end
+    else
+        if IsValid(obj) then
+            killvel(obj, true)
+            ent.APG_Frozen = true
+        end
+    end
 end
 
 function APG.FindWAC(ent) -- Note: Add a config to disable this check.
@@ -132,14 +145,6 @@ function APG.ghostThemAll( notify )
     local msg = "Unfrozen props ghosted!" 
     
     APG.notify(msg, "all", 1)
-end
-
-function APG.freezeIt( ent )
-    local pObj = ent:GetPhysicsObject()
-    if IsValid(pObj) then
-        pObj:EnableMotion( false)
-        ent.APG_Frozen = true
-    end
 end
 
 function APG.freezeProps( notify )
@@ -329,7 +334,6 @@ hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
 
         if HasHolder then
             if HeldByLast and (ply:IsAdmin() or ply:IsSuperAdmin()) then
-                ent:ForcePlayerDrop()
                 for _,v in next, ent.APG_HeldBy.plys do
                     APG.ForcePlayerDrop(v, ent)
                 end
@@ -344,6 +348,25 @@ hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
     ent.APG_HeldBy.last = {ply = ply, id = ply:SteamID()}
 
     ply.APG_CurrentlyHolding = ent
+
+    if APG.cfg["blockContraptionMove"].value then
+        local count = 0
+        local noFrozen = true
+
+        for _,v in next, constraint.GetAllConstrainedEntities(ent) do
+            count = count + 1
+            if v.APG_Frozen then
+                noFrozen = false
+                break 
+            end
+        end
+        
+        if noFrozen and ( count > 1 ) then
+            timer.Simple(0, function()
+                APG.freezeIt(ent, true)
+            end)
+        end
+    end
 end)
 
 --[[--------------------

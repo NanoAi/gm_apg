@@ -29,6 +29,7 @@ local function APGBuildMiscPanel()
     utils.switch( panel, 0, 100, 395, 20, "Disable vehicle damages", "vehDamage" )
     utils.switch( panel, 0, 130, 395, 20, "Disable vehicle collisions (with players)", "vehNoCollide" )
     utils.switch( panel, 0, 160, 395, 20, "Block Physgun Reload", "blockPhysgunReload" )
+    utils.switch( panel, 0, 190, 395, 20, "Block players from moving contraptions", "blockContraptionMove" )
     --APG_numSlider(panel, 0, 75, 500, 20, "Vehicle NoCollide", "vehNoCollide", 5, 50, 0)
 end
 
@@ -310,7 +311,7 @@ local function showNotice()
     notification.AddLegacy(msg, icon, 3+(level*3))
 
     if canPlaySound:GetBool() then
-        surface.PlaySound(level == 1 and "buttons/button10.wav" or level == 2 and "ambient/alarms/klaxon1.wav" or "buttons/button15.wav")
+        surface.PlaySound(level == 1 and "buttons/button10.wav" or level == 2 and "ambient/alarms/klaxon1.wav" or "buttons/lightswitch2.wav")
     end
 
     MsgC(level == 0 and Color(0,255,0) or Color(255,191,0), "[APG] ", Color(255,255,255), msg,"\n")

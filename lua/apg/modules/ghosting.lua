@@ -176,7 +176,7 @@ function APG.entUnGhost( ent, ply, failmsg )
 	end
 end
 
-function APG.ConstrainApply( ent, callback )
+function APG.ConstraintApply( ent, callback )
 	local constrained = constraint.GetAllConstrainedEntities(ent)
 	for _,v in next, constrained do
 		if IsValid(v) and v != ent then
@@ -192,11 +192,12 @@ end
 APG.hookRegister( mod, "PhysgunPickup","APG_makeGhost",function(ply, ent)
 	if not APG.canPhysGun( ent, ply ) then return end
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+	
 	ent.APG_Picked = true
 
 	if not APG.cfg["allowPK"].value then
 		APG.entGhost(ent)
-		APG.ConstrainApply( ent, function( _ent )
+		APG.ConstraintApply( ent, function( _ent )
 			if not _ent.APG_Frozen then
 				_ent.APG_Picked = true
 				APG.entGhost( _ent )
@@ -225,8 +226,10 @@ APG.hookRegister( mod, "PhysgunDrop", "APG_pGunDropUnghost", function( ply, ent 
 	if APG.cfg["alwaysFrozen"].value then
 		APG.freezeIt( ent )
 	end
+
 	APG.entUnGhost( ent, ply )
-	APG.ConstrainApply( ent, function( _ent )
+
+	APG.ConstraintApply( ent, function( _ent )
 		_ent.APG_Picked = false
 		APG.startDJob( "unghost", _ent )
 	end) -- Apply unghost to all constrained ents

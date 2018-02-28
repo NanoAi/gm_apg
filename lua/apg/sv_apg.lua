@@ -90,6 +90,7 @@ function APG.freezeIt( ent, extend )
     if extend then
         for _,v in next, constraint.GetAllConstrainedEntities(ent) do 
             killvel(v:GetPhysicsObject(), true)
+            v.APG_Frozen = true
         end
     else
         if IsValid(obj) then

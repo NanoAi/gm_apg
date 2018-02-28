@@ -286,8 +286,7 @@ APG.hookRegister(mod, "APG.FadingDoorToggle", "APG_FadingDoor", function(ent, is
 			timer.Simple(0.001, function()
 				local istrap = APG.isTrap(ent, true)
 
-				if IsValid(istrap[1]) then
-					APG.notify("Something is blocking your fading door! (Attempting Unstuck)", ply, 1)
+				if istrap and istable(istrap) then
 					ent.APG_Ghosted = true
 
 					timer.Simple(0.01, function()

@@ -38,7 +38,7 @@ WARNING: Don't use more then one prop protection addon at a time!
 * Supports anti-trapping for fading doors.
 * Send a message to admins when a large stack of props is detected
 
-Lag triggers are based on fancy algorithems and timers, if you are getting false positives try messing around with the values.
+Lag triggers are based on fancy algorithms and timers, if you are getting false positives try messing around with the values.
 
 If you find any issue, exploit, possible improvement, suggestions, feel free to make an issue!
 

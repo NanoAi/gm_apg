@@ -17,7 +17,8 @@ Tested Prop Protection addons:
 * Falco's Prop Protection (FPP)
 * PatchProtect ( download it now - nil on CPPIcanPhysgun issue fixed ! Thanks to Domii894)
 
-WARNING: Don't use more then one prop protection addon at a time!
+#WARNING: Don't use more then one prop protection addon at a time!
+Honestly if you do you'll release tons of bugs onto your server.
 
 ![- FEATURES -](https://i.imgur.com/IM0forg.jpg "Features")
 

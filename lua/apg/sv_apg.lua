@@ -154,7 +154,9 @@ function APG.freezeProps( notify )
         APG.freezeIt( v )
     end
     -- TODO : Fancy notification system
-    APG.notify("Props frozen", "all", 0)
+    if notify then
+        APG.notify("Props frozen", "all", 0)
+    end
 end
 
 local function GetPhysenv()

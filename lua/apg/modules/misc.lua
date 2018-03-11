@@ -73,7 +73,7 @@ end)
 ]]----------------------
 APG.timerRegister( mod, "APG_autoFreeze", APG.cfg["autoFreezeTime"].value, 0, function()
     if APG.cfg["autoFreeze"].value then
-        APG.freezeProps( true )
+        APG.freezeProps( false )
     end
 end)
 

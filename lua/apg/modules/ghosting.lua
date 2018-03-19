@@ -133,6 +133,7 @@ function APG.entGhost( ent, enforce, noCollide )
 			ent:SetColor( APG.cfg["ghost_color"].value )
 		end)
 
+		ent.APG_oldRenderMode = ent:GetRenderMode()
 		ent:SetRenderMode(RENDERMODE_TRANSALPHA)
 		ent:DrawShadow(false)
 
@@ -153,6 +154,7 @@ function APG.entUnGhost( ent, ply, failmsg )
 		if not ent.APG_isTrap then
 			ent.APG_Ghosted  = false
 			ent:DrawShadow(true)
+			ent:SetRenderMode(ent.APG_oldRenderMode)
 			ent:SetColor( ent.APG_oldColor or Color(255,255,255,255))
 			ent.APG_oldColor = false
 

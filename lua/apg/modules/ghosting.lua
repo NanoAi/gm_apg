@@ -154,8 +154,9 @@ function APG.entUnGhost( ent, ply, failmsg )
 		if not ent.APG_isTrap then
 			ent.APG_Ghosted  = false
 			ent:DrawShadow(true)
-			ent:SetRenderMode(ent.APG_oldRenderMode)
-			ent:SetColor( ent.APG_oldColor or Color(255,255,255,255))
+			
+			ent:SetRenderMode(ent.APG_oldRenderMode or RENDERMODE_NORMAL)
+			ent:SetColor(ent.APG_oldColor or Color(255,255,255,255))
 			ent.APG_oldColor = false
 
 			local newColGroup = COLLISION_GROUP_INTERACTIVE

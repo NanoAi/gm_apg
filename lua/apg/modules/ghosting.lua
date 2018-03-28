@@ -142,6 +142,8 @@ function APG.entGhost( ent, enforce, noCollide )
 		else
 			ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
 		end
+		
+		ent:CollisionRulesChanged()
 	end
 end
 
@@ -261,12 +263,15 @@ APG.hookRegister( mod, "OnEntityCreated", "APG_noColOnCreate", function( ent )
 		
 		if IsValid( owner ) and owner:IsPlayer() then
 			local pObj = ent:GetPhysicsObject()
-			if IsValid(pObj) and APG.cfg["alwaysFrozen"].value then
-				ent.APG_Frozen = true
-				pObj:EnableMotion(false)
-			elseif IsValid(pObj) and pObj:IsMoveable() then
-				ent.APG_Frozen = false
-				SafeSetCollisionGroup(ent, COLLISION_GROUP_INTERACTIVE)
+			if IsValid(pObj) then
+				if APG.cfg["alwaysFrozen"].value then
+					ent.APG_Frozen = true
+					pObj:EnableMotion(false)
+				elseif pObj:IsMoveable() then
+					ent.APG_Frozen = false
+					SafeSetCollisionGroup(ent, COLLISION_GROUP_INTERACTIVE)
+				end
+				pObj:RecheckCollisionFilter()
 			end
 		end
 

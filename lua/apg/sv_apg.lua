@@ -29,9 +29,12 @@ function APG.canPhysGun( ent, ply )
 end
 
 function APG.isBadEnt( ent )
-    if not IsValid(ent) then return false end
-    if ent.jailWall == true then return false end
-    if ent.IsWeapon and ent:IsWeapon() then return false end
+    if ent and not ent.GetClass then return false end -- Ignore if we can't read the class.
+    if not IsValid(ent) then return false end -- Ignore invalid entities.
+    if ent.jailWall == true then return false end -- Ignore ULX jails.
+    if Entity(0) == ent or ent:IsWorld() then return false end -- Ignore worldspawn.
+    if ent:IsWeapon() then return false end -- Ignore weapons.
+    if ent:GetClass() == "player" then return false end -- Ignore players.
 
     local h = hook.Run("APGisBadEnt", ent)
     if isbool(h) then return h end
@@ -61,7 +64,6 @@ local function killvel(phys, freeze)
     phys:AddAngleVelocity(phys:GetAngleVelocity()*-1)
 
     phys:Sleep()
-    phys:RecheckCollisionFilter()
 end
 
 function APG.killVelocity(ent, extend, freeze, wake_target)
@@ -81,8 +83,6 @@ function APG.killVelocity(ent, extend, freeze, wake_target)
             phys:Wake()
         end
     end
-
-    ent:CollisionRulesChanged()
 end
 
 function APG.freezeIt( ent, extend )

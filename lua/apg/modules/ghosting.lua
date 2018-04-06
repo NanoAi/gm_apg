@@ -75,11 +75,13 @@ function APG.isTrap( ent, fullscan )
 					check = v
 				end
 			end
-		elseif v:IsVehicle() then
+		elseif APG.IsVehicle(v) then
 			-- Check if the distance between the spheres centers is less than the sum of their radius.
-			local vCenter = v:LocalToWorld(v:OBBCenter())
-			if center:Distance( vCenter ) < v:BoundingRadius() then
-				check = v
+			if v:IsPlayer() then -- Only check for players.
+				local vCenter = v:LocalToWorld(v:OBBCenter())
+				if center:Distance( vCenter ) < v:BoundingRadius() then
+					check = v
+				end
 			end
 		end
 
@@ -94,7 +96,8 @@ function APG.isTrap( ent, fullscan )
 end
 
 function APG.entGhost( ent, enforce, noCollide )
-	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
+	if ( not APG.modules[ mod ] ) or ( not APG.isBadEnt( ent ) ) then return end
+	if APG.cfg["dontGhostVehicles"].value and APG.IsVehicle( ent ) then return end
 	if ent.jailWall then return end
 
 	if not ent.APG_Ghosted then
@@ -121,6 +124,7 @@ function APG.entGhost( ent, enforce, noCollide )
 			
 			if not ent.APG_oldColor then
 				ent.APG_oldColor = ent:GetColor()
+
 				if not enforce then
 					if ent.OldColor then ent.APG_oldColor = ent.OldColor end -- For FPP
 					if ent.__DPPColor then ent.APG_oldColor = ent.__DPPColor end -- For DPP
@@ -184,7 +188,7 @@ end
 function APG.ConstraintApply( ent, callback )
 	local constrained = constraint.GetAllConstrainedEntities(ent)
 	for _,v in next, constrained do
-		if IsValid(v) and v != ent then
+		if IsValid(v) and v ~= ent then
 			callback( v )
 		end
 	end

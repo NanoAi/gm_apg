@@ -105,6 +105,7 @@ defaultSettings.cfg = {
 
     thFadingDoors = { value = true, desc = "Inject custom hooks into Fading Doors" },
     fadingDoorGhosting = { value = true, desc = "Activate fading door ghosting" },
+    dontGhostVehicles = { value = false, desc = "Toggle vehicle ghosting" },
     sleepyPhys = { value = false, desc = "Activate FRZR9K (Sleepy Physics)" },
     hookSP = { value = false, desc = "Hook FRZR9K into collision (Experimental)"},
     allowPK = { value = false, desc = "Allow prop killing" }

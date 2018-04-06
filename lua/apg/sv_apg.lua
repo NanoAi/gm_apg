@@ -41,7 +41,7 @@ function APG.isBadEnt( ent )
 
     local class = ent:GetClass()
     for k, v in pairs (APG.cfg["bad_ents"].value) do
-        if ( v and k == class ) or (not v and string.find( class, k) ) then
+        if ( v and k == class ) or (not v and string.find( class, k ) ) then
             return true
         end
     end
@@ -101,7 +101,6 @@ function APG.freezeIt( ent, extend )
 end
 
 function APG.FindWAC(ent) -- Note: Add a config to disable this check.
-    if not IsValid(ent) then return false end
     if not APG.cfg["vehIncludeWAC"].value then return false end
 
     local e
@@ -116,11 +115,24 @@ function APG.FindWAC(ent) -- Note: Add a config to disable this check.
     return IsValid(e)
 end
 
+function APG.IsVehicle(v, basic)
+    if not IsValid(v) then return false end
+
+    if v:IsVehicle() then return true end
+    if string.find(v:GetClass(), "vehicle") then return true end
+    if basic then return false end
+
+    if APG.FindWAC(v) then return true end
+
+    local parent = v:GetParent()
+    return APG.IsVehicle(parent, true)
+end
+
 function APG.cleanUp( mode, notify, specific )
     local mode = mode or "unfrozen"
     for _, v in next, specific or ents.GetAll() do
         APG.killVelocity(v,false)
-        if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or APG.FindWAC(v) then continue end
+        if not APG.isBadEnt(v) or not APG.getOwner( v ) or APG.IsVehicle(v) then continue end
         if mode == "unfrozen" and v.APG_Frozen then -- Wether to clean only not frozen ents or all ents
             continue
         else
@@ -139,7 +151,7 @@ function APG.ghostThemAll( notify )
         return APG.log("[APG] Warning: Tried to ghost props but ghosting is disabled!")
     end
     for _, v in next, ents.GetAll() do
-        if not APG.isBadEnt(v) or not APG.getOwner( v ) or v:GetParent():IsVehicle() or v.APG_Frozen then continue end
+        if ( not APG.isBadEnt(v) ) or ( not APG.getOwner( v ) ) or APG.IsVehicle(v) or v.APG_Frozen then continue end
         APG.entGhost( v, false, true )
     end
     -- TODO : Fancy notification system

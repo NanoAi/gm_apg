@@ -27,10 +27,10 @@ local mod = "misc"
 ]]----------------------
 local function isVehDamage(dmg,atk,ent)
     if not IsValid(ent) then return false end
-    if dmg:GetDamageType() == DMG_VEHICLE or atk:IsVehicle() or (ent:IsVehicle() or ent:GetClass() == "prop_vehicle_jeep") then
+    if dmg:GetDamageType() == DMG_VEHICLE or APG.IsVehicle(atk) or APG.IsVehicle(ent) then
         return true
     end
-    return APG.FindWAC(ent) -- Detect WAC Vehicles.
+    return false
 end
 
 --[[--------------------
@@ -38,7 +38,7 @@ end
 ]]----------------------
 APG.hookRegister(mod,"OnEntityCreated","APG_noCollideVeh",function(ent)
     timer.Simple(0.03, function()
-        if APG.cfg["vehNoCollide"].value and (ent:IsVehicle() or APG.FindWAC(ent)) then
+        if APG.cfg["vehNoCollide"].value and APG.IsVehicle(ent) then
             ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
         end
     end)
@@ -52,7 +52,6 @@ APG.hookRegister(mod, "EntityTakeDamage","APG_noPropDmg",function(target, dmg)
     if not APG.cfg["allowPK"].value then
         if APG.isBadEnt( ent ) or dmg:GetDamageType() == DMG_CRUSH or (APG.cfg["vehDamage"].value and isVehDamage(dmg,atk,ent)) then
             dmg:SetDamage(0)
-            dmg:ScaleDamage(0)
             return true -- Returning true overrides and blocks all related damage, it also prevents the hook from running any further preventing unintentional damage from other addons.
         end
     end

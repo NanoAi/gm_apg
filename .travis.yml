@@ -1,0 +1,11 @@
+language: generic
+
+before_install:
+- mkdir -p ../goluwa && wget https://gitlab.com/CapsAdmin/goluwa/raw/master/goluwa -O ../goluwa/goluwa
+
+script:
+- |
+  paths=($(git -C $TRAVIS_BUILD_DIR diff --name-only $TRAVIS_COMMIT_RANGE))
+  echo $paths
+  paths=("${paths[@]/#/$TRAVIS_BUILD_DIR/}")
+  sh ../goluwa/goluwa cli --gluacheck $(printf '%s,' "${paths[@]}")

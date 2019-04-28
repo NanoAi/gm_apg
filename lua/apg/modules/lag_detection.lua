@@ -1,158 +1,192 @@
 --[[------------------------------------------
 
-    A.P.G. - a lightweight Anti Prop Griefing solution (v{{ script_version_name }})
-    Made by :
-    - While True (http://steamcommunity.com/id/76561197972967270)
-    - LuaTenshi (http://steamcommunity.com/id/76561198096713277)
+	============================
+			LAG DETECTION MODULE
+	============================
 
-    Licensed to : http://steamcommunity.com/id/{{ user_id }}
+	Developer informations :
+	---------------------------------
+	Used variables :
+		lagTrigger = { value = 75, desc = "% difference between current lag and average lag."}
+		lagsCount = { value = 8, desc = "Number of consectuives laggy frames in order to run a cleanup."}
+		bigLag = { value = 2, desc = "Time (seconds) between 2 frames to trigger a cleanup"}
+		lagFunc = { value = "cleanUp_unfrozen", desc = "Function ran on lag detected" }
+		lagFuncTime = { value = 20, desc = "Time (seconds) between 2 cleanup (avoid spam)"}
 
-    ============================
-        LAG DETECTION MODULE
-    ============================
-
-    Developper informations :
-    ---------------------------------
-    Used variables :
-        lagTrigger = { value = 75, desc = "% difference between current lag and average lag."}
-        lagsCount = { value = 8, desc = "Number of consectuives laggy frames in order to run a cleanup."}
-        bigLag = { value = 2, desc = "Time (seconds) between 2 frames to trigger a cleanup"}
-        lagFunc = { value = "cleanUp_unfrozen", desc = "Function ran on lag detected" }
-        lagFuncTime = { value = 20, desc = "Time (seconds) between 2 cleanup (avoid spam)"}
-
-    Ready to hook :
-        APG_lagDetected = Ran on lag detected by the server.
-        Example : hook.Add( "APG_lagDetected", "myLagDetectHook", function() print("[APG] Lag detected (printed from my very own hook)")  end)
+	Ready to hook :
+		APG_lagDetected = Ran on lag detected by the server.
+		Example : hook.Add( "APG_lagDetected", "myLagDetectHook", function() print("[APG] Lag detected (printed from my very own hook)")  end)
 
 ]]--------------------------------------------
 local mod = "lag_detection"
+local table = table
 
 --[[--------------------
-    Lag fixing functions
+	Lag fixing functions
 ]]----------------------
 
 local lagFix = {
-    cleanup_all = function( notify ) APG.cleanUp( "all", notify ) end,
-    cleanup_unfrozen = function( notify ) APG.cleanUp( "unfrozen", notify ) end,
-    ghost_unfrozen = APG.ghostThemAll,
-    freeze_unfrozen = APG.freezeProps,
-    smart_cleanup = APG.smartCleanup,
-    custom_function = APG.customFunc,
+	cleanup_all = function( ) APG.cleanUp( "all" ) end,
+	cleanup_unfrozen = function( ) APG.cleanUp( "unfrozen" ) end,
+	ghost_unfrozen = APG.ghostThemAll,
+	freeze_unfrozen = APG.freezeProps,
+	smart_cleanup = APG.smartCleanup,
+	custom_function = APG.customFunc,
 }
 
 --[[--------------------
-        Utils
+	Lag detection vars
 ]]----------------------
-function APG.process( tab )
-    local sum = 0
-    local max = 0
-    for k, v in pairs( tab ) do
-        sum = sum + v
-        if v > max then
-            max = v
-        end
-    end
-    return sum / (#tab) , max
+
+local lastTick = 0
+local tickDelta = 0
+local tickRate = 0
+
+local lagCount = 0
+local lagThreshold = math.huge
+
+local processHault = false
+local processFunc = false
+local processExecs = 0
+
+local sampleData = {}
+local sampleCount = 0
+
+local function addSample( data )
+	local index = (sampleCount%66)+1
+	local data = tonumber(data)
+
+	sampleCount = sampleCount + 1
+	if sampleCount >= 66 then
+		sampleCount = 0
+	end
+
+	table.insert(sampleData, index, data)
 end
 
-hook.Remove("APG_lagDetected", "APG_lagDetected_id") -- Sometimes, I dream about cheese.
-hook.Add("APG_lagDetected", "APG_lagDetected_id", function()
-    if not APG then return end
-    local func = APG.cfg["lagFunc"].value
-    local notify = APG.cfg["lagFuncNotify"].value
-    if not lagFix[ func ] then return end
-    lagFix[ func ]( notify )
+function APG.resetLag(dontResetData)
+	lastTick = 0
+	tickDelta = 0
+
+	lagCount = 0
+	lagThreshold = tickRate
+
+	processHault = false
+	processFunc = false
+	processExecs = 0
+end
+
+function APG.calculateLagAverage()
+	local count = 0
+	local total = 0
+	local sampleData = sampleData
+
+	for _, v in next, sampleData do
+		total = total + v
+		count = count + 1
+	end
+
+	if count < 12 then
+		return false -- Not enough data, yet.
+	end
+
+	return (total/count)
+end
+
+hook.Add("Think", "APG_initLagDetection", function()
+	tickRate = FrameTime()
+	lagThreshold = tickRate
+	hook.Remove("Think", "APG_initLagDetection")
+end)
+
+APG.timerAdd( mod, "APG_process", 3, 0, function()
+	if not APG.modules[ mod ] then return end
+
+	if sampleCount < 12 or delta < lagThreshold then
+		addSample(tickDelta)
+	end
+
+	local average = APG.calculateLagAverage()
+
+	if average then
+		lagThreshold = average * ( 1 + ( APG.cfg[ "lagTrigger" ].value / 100 ) )
+	end
+
+	processExecs = 0
+end)
+
+APG.hookAdd( mod, "Tick", "APG_lagDetection", function()
+	if not APG.modules[ mod ] then return end
+
+	local sysTime = SysTime()
+	tickDelta = sysTime - lastTick
+
+	if lagThreshold > tickRate and tickDelta >= lagThreshold then
+
+		lagCount = lagCount + 1
+
+		if (lagCount >= APG.cfg[ "lagsCount" ].value) or ( tickDelta > APG.cfg[ "bigLag" ].value ) then
+
+			lagCount = 0
+
+			if ( not processHault ) and ( not processFunc ) then
+
+				processHault = true
+
+				timer.Simple(APG.cfg["lagFuncTime"].value, function()
+					processHault = false
+				end)
+
+				hook.Run( "APG_lagDetected" )
+
+			end
+
+		end
+
+	else
+		lagCount = lagCount - 0.5
+		if lagCount < 0 then
+			lagCount = 0
+		end
+	end
+
+	lastTick = sysTime
 end)
 
 --[[--------------------
-        To replace in UI
+	Utils
 ]]----------------------
-concommand.Add( "APG_showLag", function(ply, cmd, arg)
-    if IsValid(ply) and not ply:IsAdmin() then return end
-    local lastShow = SysTime()
-    local values = {}
-    local time = arg[1] or 30
-    APG.log("[APG] Processing : please wait " .. time .. " seconds", ply )
-    hook.Add("Think","APG_showLag",function()
-        local curTime = SysTime()
-        local diff = curTime - lastShow
-        table.insert(values, diff)
-        lastShow = curTime
-    end)
-    timer.Simple( time , function()
-        hook.Remove("Think","APG_showLag")
-        local avg, max = APG.process( values )
-        values = {}
-        APG.log("[APG] Avg : " .. avg .. " | Max : " .. max, ply )
-    end)
-end)
 
---[[--------------------
-        Lag detection vars
-]]----------------------
-local trigValue = 10
-local tickTable = {}
-local delta, curAvg, lagCount = 0, 0, 0
+hook.Remove( "APG_lagDetected", "main") -- Sometimes, I dream about cheese.
+hook.Add( "APG_lagDetected", "main", function()
+	if not APG then return end
 
+	APG.notification( "!WARNING LAG DETECTED!", APG.cfg["notifyLevel"].value, 2 )
 
-local pause = false
-local lastThink = SysTime()
+	local funcName = APG.cfg[ "lagFunc" ].value
+	local func = lagFix[ funcName ]
 
-function APG.resetLag()
-    trigValue = 10
-    tickTable = {}
-    delta, curAvg, lagCount = 0, 0, 0
-    pause = false
-    lastThink = SysTime()
-end
+	if not func then return end
 
-APG.timerRegister(mod, "APG_process", 5, 0, function()
-    if not APG.modules[ mod ] then return end
+	hook.Run("APG_logsLagDetected") -- put it here so it doesn't spam
 
-    if #tickTable < 12 or delta < trigValue then -- save every values the first minute
-        table.insert(tickTable, delta)
-        if #tickTable > 60 then
-            table.remove(tickTable, 1) -- it will take 300 seconds to fullfill the table.
-        end
+	processFunc = true
 
-        curAvg = APG.process( tickTable )
-        trigValue = curAvg * ( 1 + APG.cfg["lagTrigger"].value / 100 )
-    end
-end)
+	func(false, function()
+		processFunc = false
+		processExecs = processExecs + 1
+	end)
 
-APG.hookRegister( mod, "Think", "APG_detectLag", function()
-    if not APG.modules[ mod ] then return end
-
-    local curTime = SysTime()
-    delta = curTime - lastThink
-    if delta >= trigValue then
-        lagCount = lagCount + 1
-        if (lagCount >= APG.cfg["lagsCount"].value) or ( delta > APG.cfg["bigLag"].value ) then
-            lagCount = 0
-            if not pause then
-                pause = true
-                timer.Simple( APG.cfg["lagFuncTime"].value, function() pause = false end)
-                
-                local msg = "WARNING LAG DETECTED : Running lag fix function!"
-                APG.notify(msg, "all", 2)
-
-                hook.Run( "APG_lagDetected" )
-            end
-        end
-    else
-        lagCount = lagCount > 0 and (lagCount - 0.5) or 0
-    end
-    lastThink = curTime
+	if processExecs > 3 then
+		-- If the lag cleanup process runs more then 3 times in 3 seconds, then
+		-- reset our data.
+		APG.resetLag()
+	end
 end)
 
 --[[------------------------------------------
-        Load hooks and timers
+	Load hooks and timers
 ]]--------------------------------------------
-if APG.resetLag then APG.resetLag() end
-for k, v in next, APG[mod]["hooks"] do
-    hook.Add( v.event, v.identifier, v.func )
-end
 
-for k, v in next, APG[mod]["timers"] do
-    timer.Create( v.identifier, v.delay, v.repetitions, v.func )
-end
+APG.updateHooks(mod)
+APG.updateTimers(mod)

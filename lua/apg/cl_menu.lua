@@ -23,23 +23,23 @@ net.Receive( "apg_notice_s2c", function()
 	showNotice(notifyLevel, notifyMessage)
 end)
 
-local function showNotice(notificationLevel, notificationMessage)
-	if string.Trim(notificationMessage) == "" then return end
-	icon = notificationLevel == 0 and NOTIFY_GENERIC or notificationLevel == 1 and NOTIFY_CLEANUP or notificationLevel == 2 and NOTIFY_ERROR
+local function showNotice(notifyLevel, notifyMessage)
+	if string.Trim(notifyMessage) == "" then return end
+	icon = notifyLevel == 0 and NOTIFY_GENERIC or notifyLevel == 1 and NOTIFY_CLEANUP or notifyLevel == 2 and NOTIFY_ERROR
 
-	notification.AddLegacy(notificationMessage, icon, 3 + (notificationLevel * 3))
+	notification.AddLegacy(notifyMessage, icon, 3 + (notifyLevel * 3))
 
-	if APG.cfg[ "notificationSounds" ].value then
-		surface.PlaySound(notificationLevel == 1 and "buttons/button10.wav" or notificationLevel == 2 and "ambient/alarms/klaxon1.wav" or "buttons/lightswitch2.wav") -- Maybe let the player choose the sound?
+	if APG.cfg[ "notifySounds" ].value then
+		surface.PlaySound(notifyLevel == 1 and "buttons/button10.wav" or notifyLevel == 2 and "ambient/alarms/klaxon1.wav" or "buttons/lightswitch2.wav") -- Maybe let the player choose the sound?
 	end
 
-	MsgC( notificationLevel == 0 and Color( 0, 255, 0 ) or Color( 255, 191, 0 ), "[APG] ", Color( 255, 255, 255 ), notificationMessage,"\n")
+	MsgC( notifyLevel == 0 and Color( 0, 255, 0 ) or Color( 255, 191, 0 ), "[APG] ", Color( 255, 255, 255 ), notifyMessage,"\n")
 end
 
 net.Receive( "apg_notice_s2c", function()
-  local notificationLevel = net.ReadUInt( 3 )
-  local notificationMessage = net.ReadString()
-  showNotice(notificationLevel, notificationMessage)
+	local notifyLevel = net.ReadUInt( 3 )
+	local notifyMessage = net.ReadString()
+	showNotice(notifyLevel, notifyMessage)
 end)
 
 local function APGBuildStackPanel()
@@ -177,10 +177,12 @@ local function APGBuildGhostPanel()
 	dList.Paint = function(i,w,h)
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 150, 150, 150, 255 ) )
 	end
+
 	dList.VBar.Paint = function(i,w,h)
 		surface.SetDrawColor( 88, 110, 110, 240 )
 		surface.DrawRect( 0, 0, w, h )
 	end
+
 	dList.VBar.btnGrip.Paint = function(i,w,h)
 		surface.SetDrawColor( 255, 83, 13, 50 )
 		surface.DrawRect( 0, 0, w, h )
@@ -385,6 +387,7 @@ local function openMenu( len )
 				end
 			end
 		end
+
 		local size = sidebar:GetWide()
 		button.Paint = function( _, w, h )
 			local name = utils.getNiceName( k )

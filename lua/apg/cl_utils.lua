@@ -149,6 +149,7 @@ function menu:numSlider( w, h, text, var, minSlider, maxSlider, decimal )
 	end
 
 	slider.Slider.Paint = function( slf, w, h)
+		--draw.RoundedBox(cornerRadius, x, y, width, height, color)
 		draw.RoundedBox( 0, 8, 9 - 1, w - 16, 1 + 2, Color( 250, 250, 250, 1))
 	end
 
@@ -157,11 +158,11 @@ function menu:numSlider( w, h, text, var, minSlider, maxSlider, decimal )
 	end
 
 	slider.Slider:Dock( NODOCK )
-	slider.Slider:SetPos( 300, 0 )
+	slider.Slider:SetPos( panel:GetWide() - 110, 0 )
 	slider.Slider:SetWide( 100 )
 
 	slider.TextArea:Dock( NODOCK )
-	slider.TextArea:SetPos( 265, - 3 )
+	slider.TextArea:SetPos( panel:GetWide() - 145, - 3 )
 	slider.TextArea.m_colText = Color(189, 189, 189)
 	slider.TextArea.Paint = function( self, w, h)
 		draw.RoundedBox(10, 0, 1, w-15, h, Color( 58, 58, 58, 255))
@@ -187,7 +188,7 @@ function menu:textEntry( w, h, text, var )
 	end
 
 	local txtEntry = vgui.Create( "DTextEntry", panel ) -- create the form as a child of frame
-	txtEntry:SetPos( x + 267, y-1 )
+	txtEntry:SetPos( panel:GetWide() - 110, y-1 )
 	txtEntry:SetSize( 125, 20 )
 	txtEntry:SetText( "custom" )
 	txtEntry.OnEnter = function( self )
@@ -212,7 +213,7 @@ function menu:comboBox( w, h, text, var, content )
 	end
 
 	local comboBox = vgui.Create( "DComboBox", panel )
-	comboBox:SetPos( x + 267, y-2 )
+	comboBox:SetPos( panel:GetWide() - 145, y-2 )
 	comboBox:SetSize( 125, 20 )
 	comboBox:SetValue( APG.cfg[var].value )
 	for k, v in pairs ( content ) do

@@ -190,7 +190,7 @@ function APG.entUnGhost( ent, ply, failmsg )
 			ent.APG_oldColor = false
 
 			local newCollisionGroup = COLLISION_GROUP_INTERACTIVE
-
+			
 			if ent.APG_oldCollisionGroup == COLLISION_GROUP_WORLD then
 				newCollisionGroup = ent.APG_oldCollisionGroup
 			elseif ent.APG_Frozen then

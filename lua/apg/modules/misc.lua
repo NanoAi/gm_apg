@@ -251,6 +251,11 @@ APG.hookAdd(mod, "OnEntityCreated", "frzr9k", function(ent)
 	end
 end)
 
+
+if APG.cfg[ "physGunMaxRange" ].value  then
+	RunConsoleCommand("physgun_maxrange", APG.cfg["physGunMaxRange"].value) -- Can't run SetInt on a convar that wasn't made in lua 
+end
+
 --[[------------------------------------------
 		Load hooks and timers
 ]]--------------------------------------------

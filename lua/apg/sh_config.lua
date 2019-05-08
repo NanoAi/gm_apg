@@ -46,13 +46,17 @@ defaultSettings.modules = { -- Set to true to enable and false to disable module
 	["tools"] = true,
 	["notification"] = true,
 	["logs"] = true,
+	["remove_invalid_physics"] = true,
 }
 
 defaultSettings.cfg = {
 	--[[----------
 		Ghosting module
 	]]------------
-	ghostColor = { value = Color(34, 34, 34, 220), desc = "Color set on ghosted props" },
+	ghostColor = {
+		value = Color(34, 34, 34, 220),
+		desc = "Color set on ghosted props"
+	},
 
 	badEnts = {
 		value = {
@@ -61,7 +65,20 @@ defaultSettings.cfg = {
 			["gmod_"] = false,
 			["keypad"] = false,
 		},
-		desc = "Entities to ghost/control/secure (true if exact name, false if it is a pattern"},
+		desc = "Entities to ghost/control/secure (true if exact name, false if it is a pattern"
+	},
+
+	unGhostingWhitelist = {
+		value = {
+			["zmlab_"] = false,
+		},
+		desc = "Entities that should be set back to their original (spawned) collision group when frozen/dropped."
+	},
+
+	invalidPhysicsWhitelist = {
+		value = {},
+		desc = "Entities that shouldn't be removed if they don't have proper physics"
+	},
 
 	alwaysFrozen = {
 		value = true,
@@ -181,7 +198,7 @@ defaultSettings.cfg = {
 	},
 
 	--[[ Tool Control ]]--
-	
+
 	checkCanTool = {
 		value = true,
 		desc = "Should tools be blocked on APG_CantPickup?"
@@ -234,7 +251,6 @@ defaultSettings.cfg = {
 		desc = "Log when the server lags"
 	},
 
-
 	--[[ Props related ]]--
 
 	blockPhysgunReload = {
@@ -255,11 +271,6 @@ defaultSettings.cfg = {
 	autoFreezeTime = {
 		value = 120,
 		desc = "Auto freeze timer (seconds)"
-	},
-
-	removeInvalidPhys = {
-		value = true,
-		desc = "Remove props that don't have a valid physics object?"
 	},
 
 	fadingDoorHook = {

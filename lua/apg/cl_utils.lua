@@ -62,6 +62,17 @@ function utils.addBadEntity( class )
 	APG.cfg["badEnts"].value[ class ] = found
 end
 
+function utils.addInvalidWhitelist( model )
+	local found = false
+	for k, v in pairs ( ents.GetAll() ) do
+		if model == v:GetModel() then
+			found = true
+			break
+		end
+	end
+	APG.cfg["invalidPhysicsWhitelist"].value[ model ] = found
+end
+
 function utils.getNiceName( str )
 	local nName = string.gsub(str, "^%l", string.upper)
 	nName = string.gsub(nName, "_", " " )

@@ -34,6 +34,26 @@ function APG.canPhysGun( ent, ply )
 	return false -- If everything fails we probably shouldn't be picking this up.
 end
 
+function APG.isWhitelistedEnt( ent )
+	if ent and not ent.GetClass then return false end -- Ignore if we can't read the class.
+	if not IsValid(ent) then return false end -- Ignore invalid entities.
+	if ent.jailWall == true then return false end -- Ignore ULX jails.
+	if Entity(0) == ent or ent:IsWorld() then return false end -- Ignore worldspawn.
+	if ent:IsWeapon() then return false end -- Ignore weapons.
+	if ent:IsPlayer() then return false end -- Ignore players.
+
+	local class = ent:GetClass()
+	for k, v in pairs (APG.cfg["unGhostingWhitelist"].value) do
+		if ( v and k == class ) or (not v and string.find( class, k ) ) then
+			return true
+		end
+	end
+
+	return false
+end
+
+
+
 	--[[
 		Check if the entity is a bad entity, as defined in badEnts
 		@param {entity} ent

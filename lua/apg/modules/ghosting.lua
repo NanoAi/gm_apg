@@ -33,8 +33,9 @@ function ENT:SetCollisionGroup( group )
 	local hasValidOwner = APG.getOwner( self )
 	local groupIsNone = group == COLLISION_GROUP_NONE
 	local isNotFrozen = not self.APG_Frozen
+	local isWhitelistedEnt = APG.isWhitelistedEnt(self)
 
-	local shouldMakeInteractable = isBadEnt and hasValidOwner and groupIsNone and isNotFrozen
+	local shouldMakeInteractable = isBadEnt and hasValidOwner and groupIsNone and isNotFrozen and not isWhitelistedEnt
 
 	if shouldMakeInteractable then
 		group = COLLISION_GROUP_INTERACTIVE
@@ -68,11 +69,11 @@ end
 local PhysObj = FindMetaTable( "PhysObj" )
 APG._EnableMotion = APG._EnableMotion or PhysObj.EnableMotion
 function PhysObj:EnableMotion( bool )
-	local sent = self:GetEntity()
-	if APG.isBadEnt( sent ) and APG.getOwner( sent ) then
-		sent.APG_Frozen = not bool
-		if not sent.APG_Frozen then
-			sent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
+	local ent = self:GetEntity()
+	if APG.isBadEnt( ent ) and APG.getOwner( ent ) then
+		ent.APG_Frozen = not bool
+		if not ent.APG_Frozen then
+			ent:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
 		end
 	end
 	return APG._EnableMotion( self, bool )
@@ -190,8 +191,9 @@ function APG.entUnGhost( ent, ply, failmsg )
 			ent.APG_oldColor = false
 
 			local newCollisionGroup = COLLISION_GROUP_INTERACTIVE
-			
-			if ent.APG_oldCollisionGroup == COLLISION_GROUP_WORLD then
+			if APG.isWhitelistedEnt(ent) then
+				newCollisionGroup = ent.APG_spawnedCollisionGroup
+			elseif ent.APG_oldCollisionGroup == COLLISION_GROUP_WORLD then
 				newCollisionGroup = ent.APG_oldCollisionGroup
 			elseif ent.APG_Frozen then
 				newCollisionGroup = COLLISION_GROUP_NONE
@@ -248,7 +250,7 @@ APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, 
 	if APG.cfg[ "alwaysFrozen" ].value then
 		APG.debug("[APG-UNFREEZE]" .. ply:Nick() .. " unfroze " .. ent:GetName() .. " but alwaysFrozen is enabled!")
 		return false
-	 end -- Do not unfreeze if Always Frozen is enabled !
+	end -- Do not unfreeze if Always Frozen is enabled !
 	if ent:GetCollisionGroup( ) ~= COLLISION_GROUP_WORLD then
 		APG.debug("[APG-UNFREEZE]" .. ply:Nick() .. " unfroze " .. ent:GetName())
 		ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
@@ -291,8 +293,9 @@ end
 APG.hookAdd( mod, "OnEntityCreated", "APG_noCollideOnCreate", function( ent )
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	if not IsValid( ent ) then return end
-
 	if ent:GetClass() == "gmod_hands" then return end -- Fix shadow glitch
+
+	ent.APG_spawnedCollisionGroup = ent:GetCollisionGroup() -- have to set it before it's ghosted
 
 	timer.Simple( 0, function()
 		if not ent then return end
@@ -320,14 +323,6 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_noCollideOnCreate", function( ent )
 					ent.APG_Frozen = false
 					SafeSetCollisionGroup( ent, COLLISION_GROUP_INTERACTIVE )
 				end
-
-			-- Need's a whitelist to allow specific models
-			-- else
-			-- 	if not APG.cfg["removeInvalidPhys"].value then return end
-			-- 	timer.Simple(0, function()
-			-- 		ent:Remove()
-			-- 		APG.debug(tostring(ent) .. " spawned by " .. owner:Nick() .. " doesn't have physics!")
-			-- 	end)
 			end
 		end
 

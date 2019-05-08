@@ -131,10 +131,13 @@ local function APGBuildGhostPanel()
 	panel.Paint = function( i, w, h)
 		draw.RoundedBox( 0, 0, 37, 170, 135, Color( 38, 38, 38, 255 ) )
 		draw.DrawText( "Ghosting color:", "APG_element_font", 5, 37, Color( 189, 189, 189 ), 3 )
-
-		draw.RoundedBox( 0, 175, 37, 250, 250, Color( 38, 38, 38, 255) )
+		--draw.RoundedBox(cornerRadius, x, y, width, height, color)
+		draw.RoundedBox( 0, 175, 37, 500, 300, Color( 38, 38, 38, 255) )
 		draw.DrawText( "Bad entities:", "APG_element_font", 180, 37, Color( 189, 189, 189), 3 )
 		draw.DrawText( "(Right-Click to Toggle)", "APG_title2_font", 280, 38, Color( 189, 189, 189), 3 )
+		--draw.DrawText(text, font="DermaDefault", x=0, y=0, color=Color(255,255,255,255), xAlign=TEXT_ALIGN_LEFT)
+		draw.DrawText( "Good entities:", "APG_element_font", 180, 230, Color( 189, 189, 189), 3 )
+		draw.DrawText( "(Right-Click to Toggle)", "APG_title2_font", 285, 232, Color( 189, 189, 189), 3 )
 	end
 
 	menu:initPanel( panel, 0, 180, 0, 35 )
@@ -150,91 +153,174 @@ local function APGBuildGhostPanel()
 		APG.cfg[ "ghostColor" ].value = Color( color.r, color.g, color.b, color.a)
 	end
 
-	local dList = vgui.Create( "DListView", panel )
-	dList:Clear()
-	dList:SetPos( 180, 55 )
-	dList:SetSize( panel:GetWide() - 185, panel:GetTall() - 60 )
-	dList:SetMultiSelect( false )
-	dList:SetHideHeaders( false )
-	dList:AddColumn( "Class" )
-	dList:AddColumn( "Exact" )
+	local badList = vgui.Create( "DListView", panel )
+	badList:Clear()
+	badList:SetPos( 180, 55 )
+	badList:SetSize( panel:GetWide() - 185, panel:GetTall() / 2.5 )
+	badList:SetMultiSelect( false )
+	badList:SetHideHeaders( false )
+	badList:AddColumn( "Class" )
+	badList:AddColumn( "Exact" )
 
-	function dList:OnRowRightClick( id, line )
+	function badList:OnRowRightClick( id, line )
 		local key = line:GetColumnText(1)
 		local value = not tobool(line:GetColumnText(2))
 		line:SetColumnText( 2, value )
 		APG.cfg[ "badEnts" ].value[key] = value
 	end
 
+	local goodList = vgui.Create( "DListView", panel )
+	goodList:Clear()
+	goodList:SetPos( 180, 250 )
+	goodList:SetSize( panel:GetWide() - 185, panel:GetTall() / 2.5 )
+	goodList:SetMultiSelect( false )
+	goodList:SetHideHeaders( false )
+	goodList:AddColumn( "Class" )
+	goodList:AddColumn( "Exact" )
+	
+	function goodList:OnRowRightClick( id, line )
+		local key = line:GetColumnText(1)
+		local value = not tobool(line:GetColumnText(2))
+		line:SetColumnText( 2, value )
+		APG.cfg[ "unGhostingWhitelist" ].value[key] = value
+	end
+
+
 	local function updateTab()
-		dList:Clear()
+
+		badList:Clear()
 		for class,complete in pairs(APG.cfg[ "badEnts" ].value) do
-			dList:AddLine(class, complete)
+			badList:AddLine(class, complete)
 		end
+		
+		goodList:Clear()
+		for class,complete in pairs(APG.cfg[ "unGhostingWhitelist" ].value) do
+			goodList:AddLine(class, complete)
+		end
+
 	end
 	updateTab()
 
-	dList.Paint = function(i,w,h)
+	badList.Paint = function(i,w,h)
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 150, 150, 150, 255 ) )
 	end
 
-	dList.VBar.Paint = function(i,w,h)
+	badList.VBar.Paint = function(i,w,h)
 		surface.SetDrawColor( 88, 110, 110, 240 )
 		surface.DrawRect( 0, 0, w, h )
 	end
 
-	dList.VBar.btnGrip.Paint = function(i,w,h)
+	badList.VBar.btnGrip.Paint = function(i,w,h)
 		surface.SetDrawColor( 255, 83, 13, 50 )
 		surface.DrawRect( 0, 0, w, h )
-		draw.RoundedBox( 0, 1, 1, w - 2, h - 2, Color( 72, 89, 89, 255 ) )
+		draw.RoundedBox( 0, 1, 1, w - 2, h / 2, Color( 72, 89, 89, 255 ) )
 	end
 
-	dList.VBar.btnUp.Paint = function(i,w,h)
+	badList.VBar.btnUp.Paint = function(i,w,h)
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 72, 89, 89, 240 ) )
 	end
 
-	dList.VBar.btnDown.Paint = function(i,w,h)
+	badList.VBar.btnDown.Paint = function(i,w,h)
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 72, 89, 89, 240 ) )
 	end
 
-	local TextEntry = vgui.Create( "DTextEntry", panel )
-	TextEntry:SetPos( offsets.x, panel:GetTall() - 45 )
-	TextEntry:SetSize( 100, 20 )
-	TextEntry:SetText( "Entity class" )
-	TextEntry.OnEnter = function( self )
+	goodList.Paint = function(i,w,h)
+		draw.RoundedBox( 0, 0, 0, w, h, Color( 150, 150, 150, 255 ) )
+	end
+
+	goodList.VBar.Paint = function(i,w,h)
+		surface.SetDrawColor( 88, 110, 110, 240 )
+		surface.DrawRect( 0, 0, w, h )
+	end
+
+	goodList.VBar.btnGrip.Paint = function(i,w,h)
+		surface.SetDrawColor( 255, 83, 13, 50 )
+		surface.DrawRect( 0, 0, w, h )
+		draw.RoundedBox( 0, 1, 1, w - 2, h / 2, Color( 72, 89, 89, 255 ) )
+	end
+
+	goodList.VBar.btnUp.Paint = function(i,w,h)
+		draw.RoundedBox( 0, 0, 0, w, h, Color( 72, 89, 89, 240 ) )
+	end
+
+	goodList.VBar.btnDown.Paint = function(i,w,h)
+		draw.RoundedBox( 0, 0, 0, w, h, Color( 72, 89, 89, 240 ) )
+	end
+
+	local BadTextEntry = vgui.Create( "DTextEntry", panel )
+	BadTextEntry:SetPos( offsets.x, panel:GetTall() - 100 )
+	BadTextEntry:SetSize( 100, 20 )
+	BadTextEntry:SetText( "Bad Entity class" )
+	BadTextEntry.OnEnter = function( self )
 		chat.AddText( self:GetValue() )
 	end
 
-	local Add = vgui.Create( "DButton" , panel)
-	Add:SetPos( offsets.x + 100, panel:GetTall() - 45 )
-	Add:SetSize( 75,20 )
-	Add:SetText( "Add" )
-	Add.DoClick = function()
-		if TextEntry:GetValue() == "Entity class" then return end
-		utils.addBadEntity( TextEntry:GetValue() )
+	local BadAdd = vgui.Create( "DButton" , panel)
+	BadAdd:SetPos( offsets.x + 100, panel:GetTall() - 100 )
+	BadAdd:SetSize( 75,20 )
+	BadAdd:SetText( "Add" )
+	BadAdd.DoClick = function()
+		if BadTextEntry:GetValue() == "Bad Entity class" then return end
+		utils.addBadEntity( BadTextEntry:GetValue() )
 		updateTab()
 	end
 
-	Add:SetTextColor( Color(255, 255, 255) )
-	Add.Paint = function( i, w, h)
+	BadAdd:SetTextColor( Color(255, 255, 255) )
+	BadAdd.Paint = function( i, w, h)
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 44, 55, 55, 255 ) )
 		draw.RoundedBox( 0, 1, 1, w-2, h-2, Color( 58, 58, 58, 255 ) )
 	end
 
-	local Remove = vgui.Create( "DButton" , panel)
-	Remove:SetPos( offsets.x, panel:GetTall() - 25 )
-	Remove:SetSize( 175, 20 )
-	Remove:SetText( "Remove selected" )
-	Remove.DoClick = function()
-		for k,v in pairs(dList:GetSelected()) do
+	local BadRemove = vgui.Create( "DButton" , panel)
+	BadRemove:SetPos( offsets.x, panel:GetTall() - 80 )
+	BadRemove:SetSize( 175, 20 )
+	BadRemove:SetText( "Remove selected" )
+	BadRemove.DoClick = function()
+		for k, v in pairs(badList:GetSelected()) do
 			local key = v:GetValue(1)
 			APG.cfg[ "badEnts" ].value[key] = nil
 			updateTab()
 		end
 	end
 
-	Remove:SetTextColor( Color( 255, 255, 255 ) )
-	Remove.Paint = function( i, w, h )
+	BadRemove:SetTextColor( Color( 255, 255, 255 ) )
+	BadRemove.Paint = function( i, w, h )
+		draw.RoundedBox( 0, 0, 0, w, h, Color( 58, 58, 58, 255 ) )
+		draw.RoundedBox( 0, 0, 0, w, 1, Color( 30, 30, 30, 125 ) )
+	end
+
+	local GoodTextEntry = vgui.Create( "DTextEntry", panel )
+	GoodTextEntry:SetPos( offsets.x, panel:GetTall() - 45 )
+	GoodTextEntry:SetSize( 100, 20 )
+	GoodTextEntry:SetText( "Good Entity class" )
+	GoodTextEntry.OnEnter = function( self )
+		chat.AddText( self:GetValue() )
+	end
+
+	local GoodAdd = vgui.Create( "DButton" , panel)
+	GoodAdd:SetPos( offsets.x + 100, panel:GetTall() - 45 )
+	GoodAdd:SetSize( 75,20 )
+	GoodAdd:SetText( "Add" )
+	GoodAdd.DoClick = function()
+		if GoodTextEntry:GetValue() == "Good Entity class" then return end
+		utils.addGoodEntity( GoodTextEntry:GetValue() )
+		updateTab()
+	end
+
+	local GoodRemove = vgui.Create( "DButton" , panel)
+	GoodRemove:SetPos( offsets.x, panel:GetTall() - 25 )
+	GoodRemove:SetSize( 175, 20 )
+	GoodRemove:SetText( "Remove selected" )
+	GoodRemove.DoClick = function()
+		for k, v in pairs(goodList:GetSelected()) do
+			local key = v:GetValue(1)
+			APG.cfg[ "unGhostingWhitelist" ].value[key] = nil
+			updateTab()
+		end
+	end
+
+	GoodRemove:SetTextColor( Color( 255, 255, 255 ) )
+	GoodRemove.Paint = function( i, w, h )
 		draw.RoundedBox( 0, 0, 0, w, h, Color( 58, 58, 58, 255 ) )
 		draw.RoundedBox( 0, 0, 0, w, 1, Color( 30, 30, 30, 125 ) )
 	end

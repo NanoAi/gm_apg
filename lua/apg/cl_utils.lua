@@ -62,6 +62,25 @@ function utils.addBadEntity( class )
 	APG.cfg["badEnts"].value[ class ] = found
 end
 
+function utils.addGoodEntity( class )
+	local found = false
+	for k, v in pairs ( ents.GetAll() ) do
+		if class == v:GetClass() then
+			found = true
+			break
+		end
+	end
+	if not found then
+		for k in pairs (scripted_ents.GetList()) do
+			if class == k then
+				found = true
+				break
+			end
+		end
+	end
+	APG.cfg["unGhostingWhitelist"].value[ class ] = found
+end
+
 function utils.addInvalidWhitelist( model )
 	local found = false
 	for k, v in pairs ( ents.GetAll() ) do

@@ -18,7 +18,7 @@ local isentity = isentity
 
 function APG.canPhysGun( ent, ply )
 	if not IsValid(ent) then return false end -- The entity isn't valid, don't pickup.
-	if ent.PhysgunDisabled == false then
+	if ent.PhysgunDisabled then
 		return false
 	end -- Check if the entity is physgun disabled.
 
@@ -35,12 +35,6 @@ function APG.canPhysGun( ent, ply )
 end
 
 function APG.isWhitelistedEnt( ent )
-	if ent and not ent.GetClass then return false end -- Ignore if we can't read the class.
-	if not IsValid(ent) then return false end -- Ignore invalid entities.
-	if ent.jailWall == true then return false end -- Ignore ULX jails.
-	if Entity(0) == ent or ent:IsWorld() then return false end -- Ignore worldspawn.
-	if ent:IsWeapon() then return false end -- Ignore weapons.
-	if ent:IsPlayer() then return false end -- Ignore players.
 
 	local class = ent:GetClass()
 	for k, v in pairs (APG.cfg["unGhostingWhitelist"].value) do
@@ -345,6 +339,7 @@ end
 hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
 	if not APG.isBadEnt( ent ) then return end
 	if not APG.canPhysGun( ent, ply ) then return false end
+
 
 	ent.APG_Picked = true
 	ent.APG_Frozen = false

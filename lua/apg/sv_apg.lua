@@ -61,6 +61,7 @@ function APG.isBadEnt( ent )
 	if Entity(0) == ent or ent:IsWorld() then return false end -- Ignore worldspawn.
 	if ent:IsWeapon() then return false end -- Ignore weapons.
 	if ent:IsPlayer() then return false end -- Ignore players.
+	if ent:IsNPC() then return false end
 
 	local h = hook.Run("APGisBadEnt", ent)
 	if isbool(h) then return h end

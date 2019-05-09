@@ -7,7 +7,7 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_removeInvalidPhysics", function( ent )
 
     timer.Simple(0, function()
         local owner = APG.getOwner( ent )
-        if IsValid( owner ) and owner:IsPlayer() then
+        if IsValid( owner ) and owner:IsPlayer() and not ent:IsNPC() then
             local pObj = ent:GetPhysicsObject()
             if not IsValid(pObj) and not APG.cfg["invalidPhysicsWhitelist"].value[ent:GetModel()] then
                 timer.Simple(0, function()

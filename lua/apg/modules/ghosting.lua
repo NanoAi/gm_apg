@@ -301,8 +301,17 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_noCollideOnCreate", function( ent )
 		if not ent then return end
 		if not ent:IsSolid() then return end -- Don't ghost ghosts.
 
+		local spawnedEnt = tostring(ent)
+		local owner = ""
+		if APG.getOwner(ent) ~= nil then -- incase getowner return's nil (like on reloading)
+			owner = APG.getOwner(ent):Nick()
+		else 
+			owner = "console"
+		end
+
 		APG.entGhost( ent )
-		APG.debug(tostring(ent) .. " was spawned by " .. APG.getOwner(ent):Nick() .. " and was ghosted.")
+		
+		APG.debug(spawnedEnt .. " was spawned by " .. owner .. " and was ghosted.")
 	end)
 
 	timer.Simple( 0, function()

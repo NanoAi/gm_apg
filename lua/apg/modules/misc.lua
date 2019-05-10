@@ -16,6 +16,8 @@
 local mod = "misc"
 
 --[[ Helper functions ]]
+local timerSimple = timer.Simple
+
 local function isVehDamage( dmg, atk, ent )
 	if not IsValid( ent ) then return false end
 	if dmg:GetDamageType() == DMG_VEHICLE or APG.IsVehicle( atk ) or APG.IsVehicle( ent ) then
@@ -29,9 +31,13 @@ local function getPhys(ent)
 	return ( phys and IsValid(phys) ) and phys or false
 end
 
+local function wait(callback)
+	timerSimple(0.003, callback)
+end
+
 --[[ No Collide vehicles on spawn ]]
 APG.hookAdd( mod,"OnEntityCreated", "APG_noCollideVeh", function( ent )
-	timer.Simple(0.03, function()
+	timerSimple(0.03, function()
 		if APG.cfg[ "vehNoCollide" ].value and APG.IsVehicle( ent ) then
 			ent:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 		end
@@ -54,7 +60,7 @@ end)
 APG.hookAdd( mod, "OnEntityCreated", "APG_removeInvalidPhysics", function( ent )
 	if ( not APG.cfg[ "removeInvalidPhysics" ].value ) then return end
 
-	timer.Simple(0, function()
+	timerSimple(0, function()
 		if not IsValid( ent ) then return end
 		
 		local model = ent:GetModel()
@@ -101,7 +107,7 @@ APG.hookAdd(mod, "CanTool", "APG_fadingDoorTool", function(ply, tr, tool)
 	end
 
 	if APG.cfg["fadingDoorHook"].value and tool == "fading_door" then
-		timer.Simple(0, function()
+		timerSimple(0, function()
 			if IsValid(tr.Entity) and not tr.Entity:IsPlayer() then
 				local ent = tr.Entity
 
@@ -169,7 +175,7 @@ APG.hookAdd(mod, "PlayerSwitchFlashlight", "APG_flashlightSpam", function(ply, e
 			ply:AllowFlashlight(false)
 			ply:EmitSound('buttons/button10.wav')
 
-			timer.Simple(4, function()
+			timerSimple(4, function()
 				if IsValid(ply) then
 					ply:AllowFlashlight(can)
 					spammers[tostring(ply:UserID())] = nil
@@ -187,18 +193,23 @@ end)
 
 local zero = Vector(0,0,0)
 
-APG.timerAdd(mod, "frzr9k", 4, 0, function()
-	if not APG.cfg["sleepyPhys"].value then return end
-	for _,v in next, ents.GetAll() do
-		if APG.isBadEnt( v ) then
-			local phys = getPhys( v )
-			if phys and ( phys:IsMotionEnabled() and not v:IsPlayerHolding() ) then
-				local vel = v:GetVelocity()
-				if vel:Distance(zero) <= 23 then
-					phys:Sleep()
-				end
-			end
+local function sleepyPhys(phys)
+	-- Don't check IsValid, instead check if exists and type check. (Faster?)
+	if phys and ( type(phys.GetVelocity) == "function" and type(phys.Sleep) == "function" ) then
+		local vel = phys:GetVelocity()
+		if vel:Distance(zero) <= 23 then
+			phys:Sleep()
 		end
+	end
+end
+
+APG.hookAdd(mod, "OnEntityCreated", "frzr9k-p1", function(ent)
+	if APG.cfg["sleepyPhys"].value then
+		wait(function()
+			if APG.isBadEnt( ent ) and getPhys( ent ) then
+				ent:AddCallback("PhysicsUpdate", sleepyPhys)
+			end
+		end)
 	end
 end)
 
@@ -247,9 +258,9 @@ local function collcall(ent, data)
 	end
 end
 
-APG.hookAdd(mod, "OnEntityCreated", "frzr9k", function(ent)
+APG.hookAdd(mod, "OnEntityCreated", "frzr9k-p2", function(ent)
 	if APG.cfg["sleepyPhys"].value and APG.cfg["sleepyPhysHook"].value then
-		timer.Simple(0.05, function()
+		wait(function()
 			if APG.isBadEnt( ent ) and getPhys( ent ) then
 				ent:AddCallback("PhysicsCollide", collcall)
 			end

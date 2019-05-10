@@ -308,101 +308,6 @@ local function APGBuildGhostPanel()
 	end
 end
 
-local function APGBuildInvalidPhysicsPanel()
-	local panel = APG_panels[ "remove_invalid_physics" ]
-
-	panel.Paint = function( i, w, h)
-
-		draw.RoundedBox( 0, 175, 37, 250, 250, Color( 38, 38, 38, 255) )
-		draw.DrawText( "Good entities:", "APG_element_font", 180, 37, Color( 189, 189, 189), 3 )
-	end
-
-	menu:initPanel( panel, 0, 180, 0, 35 )
-	local offsets = menu:panelDone()
-
-	local dList = vgui.Create( "DListView", panel )
-	dList:Clear()
-	dList:SetPos( 180, 55 )
-	dList:SetSize( panel:GetWide() - 185, panel:GetTall() - 60 )
-	dList:SetMultiSelect( false )
-	dList:SetHideHeaders( false )
-	dList:AddColumn( "Model" )
-
-	local function updateTab()
-		dList:Clear()
-		for model in pairs(APG.cfg[ "invalidPhysicsWhitelist" ].value) do
-			dList:AddLine(model)
-		end
-	end
-	updateTab()
-
-	dList.Paint = function(i,w,h)
-		draw.RoundedBox( 0, 0, 0, w, h, Color( 150, 150, 150, 255 ) )
-	end
-
-	dList.VBar.Paint = function(i,w,h)
-		surface.SetDrawColor( 88, 110, 110, 240 )
-		surface.DrawRect( 0, 0, w, h )
-	end
-
-	dList.VBar.btnGrip.Paint = function(i,w,h)
-		surface.SetDrawColor( 255, 83, 13, 50 )
-		surface.DrawRect( 0, 0, w, h )
-		draw.RoundedBox( 0, 1, 1, w - 2, h - 2, Color( 72, 89, 89, 255 ) )
-	end
-
-	dList.VBar.btnUp.Paint = function(i,w,h)
-		draw.RoundedBox( 0, 0, 0, w, h, Color( 72, 89, 89, 240 ) )
-	end
-
-	dList.VBar.btnDown.Paint = function(i,w,h)
-		draw.RoundedBox( 0, 0, 0, w, h, Color( 72, 89, 89, 240 ) )
-	end
-
-	local TextEntry = vgui.Create( "DTextEntry", panel )
-	TextEntry:SetPos( offsets.x, panel:GetTall() - 45 )
-	TextEntry:SetSize( 100, 20 )
-	TextEntry:SetText( "Model Directory" )
-	TextEntry.OnEnter = function( self )
-		chat.AddText( self:GetValue() )
-	end
-
-	local Add = vgui.Create( "DButton" , panel)
-	Add:SetPos( offsets.x + 100, panel:GetTall() - 45 )
-	Add:SetSize( 75,20 )
-	Add:SetText( "Add" )
-	Add.DoClick = function()
-		if TextEntry:GetValue() == "Model Directory" then return end
-		utils.addInvalidWhitelist( TextEntry:GetValue() )
-		updateTab()
-	end
-
-	Add:SetTextColor( Color(255, 255, 255) )
-	Add.Paint = function( i, w, h)
-		draw.RoundedBox( 0, 0, 0, w, h, Color( 44, 55, 55, 255 ) )
-		draw.RoundedBox( 0, 1, 1, w-2, h-2, Color( 58, 58, 58, 255 ) )
-	end
-
-	local Remove = vgui.Create( "DButton" , panel)
-	Remove:SetPos( offsets.x, panel:GetTall() - 25 )
-	Remove:SetSize( 175, 20 )
-	Remove:SetText( "Remove selected" )
-	Remove.DoClick = function()
-		for k,v in pairs(dList:GetSelected()) do
-			local key = v:GetValue(1)
-			APG.cfg[ "invalidPhysicsWhitelist" ].value[key] = nil
-			updateTab()
-		end
-	end
-
-	Remove:SetTextColor( Color( 255, 255, 255 ) )
-	Remove.Paint = function( i, w, h )
-		draw.RoundedBox( 0, 0, 0, w, h, Color( 58, 58, 58, 255 ) )
-		draw.RoundedBox( 0, 0, 0, w, 1, Color( 30, 30, 30, 125 ) )
-	end
-end
-
-
 local main_color = Color( 32, 255, 0, 255 )
 local main_color_red = Color( 96, 0, 0, 255 )
 local main_color_darker = Color( 51, 91, 51, 255 )
@@ -576,7 +481,6 @@ local function openMenu( len )
 	APGBuildStackPanel()
 	APGBuildLogsPanel()
 	APGBuildNotificationPanel()
-	APGBuildInvalidPhysicsPanel()
 end
 
 net.Receive( "apg_menu_s2c", openMenu )

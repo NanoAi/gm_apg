@@ -1,6 +1,11 @@
 --[[ INITIALIZE APG ]]
 APG = {}
 APG.modules =  APG.modules or {}
+
+--[[ Micro Optimization ]]
+local timer = timer
+local table = table
+
 --[[ CLIENT related ]]
 AddCSLuaFile("apg/sh_config.lua")
 AddCSLuaFile("apg/cl_utils.lua")
@@ -113,7 +118,6 @@ function APG.reload()
 		end
 	end
 end
-
 
 --[[ local settings = {}
 function APG.sampleServerSettings()

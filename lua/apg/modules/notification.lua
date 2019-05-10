@@ -86,8 +86,8 @@ function APG.notify(log, level, target, ... ) -- The most advanced notification 
 		if not isentity(v) then continue end
 		if not IsValid(v) then continue end
 		net.Start("apg_notice_s2c")
-			net.WriteUInt(notifyLevel, 3)
-			net.WriteString(msg)
+			net.WriteUInt(level, 3)
+			net.WriteString(outMsg)
 		net.Send(v)
 	end
 

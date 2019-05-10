@@ -98,7 +98,7 @@ end)
 APG.timerAdd( mod, "APG_process", 3, 0, function()
 	if not APG.modules[ mod ] then return end
 
-	if sampleCount < 12 or delta < lagThreshold then
+	if sampleCount < 12 or tickDelta < lagThreshold then
 		addSample(tickDelta)
 	end
 

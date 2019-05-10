@@ -1,10 +1,9 @@
 --[[------------------------------------------
 
 	============================
-			NOTIFICATION MODULE
+		NOTIFICATION MODULE
 	============================
 
-	This is so messy I can't tell up from down it really needs to be rewritten from scratch!
 ]]--------------------------------------------
 
 local mod = "notification"

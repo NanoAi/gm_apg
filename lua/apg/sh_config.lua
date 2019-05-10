@@ -138,9 +138,7 @@ defaultSettings.cfg = {
 		desc = "Time (seconds) between 2 anti lag function (avoid spam)"
 	},
 
-	--[[----------
-		MISC
-	]]------------
+
 
 	--[[ Notifications ]] --
 
@@ -168,6 +166,11 @@ defaultSettings.cfg = {
 		value = { "trialmod", "moderator", "admin", "superadmin", "owner" },
 		desc = "The ranks that you want to see the notification" -- If you have notifyULibInheritance you only need to do the lowest rank(s)
 	},
+
+
+	--[[----------
+		MISC
+	]]------------
 
 	--[[ Vehicles ]]--
 
@@ -243,6 +246,10 @@ defaultSettings.cfg = {
 		desc = "Review entities near tool use."
 	},
 
+	physGunMaxRange = {
+		value = 700,
+		desc = "Max range a physics gun can go"
+	},
 	--[[ Logs ]]--
 
 	logStackCrashAttempt = {

@@ -44,26 +44,26 @@ APG.hookAdd(mod, "CanTool", "APG_ToolSpamControl", function(ply)
 
 	ply.APG_ToolCTRL = ply.APG_ToolCTRL or {}
 
-	local plyr = ply
-	local ply = ply.APG_ToolCTRL
+	local ply = ply
+	local data = ply.APG_ToolCTRL
 	local delay = 0
 	local diff = 0
 
-	ply.curTime = CurTime()
-	ply.toolDelay = ply.toolDelay or 0
-	ply.toolUseTimes = ply.toolUseTimes or 0
+	data.curTime = CurTime()
+	data.toolDelay = data.toolDelay or 0
+	data.toolUseTimes = data.toolUseTimes or 0
 
-	diff = ply.curTime - ply.toolDelay
+	diff = data.curTime - data.toolDelay
 	delay = APG.cfg[ "blockToolDelay" ].value
 
-	if ply.toolUseTimes <= 0 or diff > delay then
-		ply.toolUseTimes = 0
-		ply.toolDelay = 0
-		ply.wasNotified = false
+	if data.toolUseTimes <= 0 or diff > delay then
+		data.toolUseTimes = 0
+		data.toolDelay = 0
+		data.wasNotified = false
 	end
 
 	if diff > 0 then
-		ply.toolUseTimes = math.max( ply.toolUseTimes - 1, 0 )
+		data.toolUseTimes = math.max( data.toolUseTimes - 1, 0 )
 	else
 		data.toolUseTimes = math.min( data.toolUseTimes + 1, APG.cfg[ "blockToolRate" ].value )
 		if data.toolUseTimes >= APG.cfg[ "blockToolRate" ].value then
@@ -76,8 +76,8 @@ APG.hookAdd(mod, "CanTool", "APG_ToolSpamControl", function(ply)
 		end
 	end
 	
-	if ply.toolDelay == 0 then
-		ply.toolDelay = ply.curTime + delay
+	if data.toolDelay == 0 then
+		data.toolDelay = data.curTime + delay
 	end
 end)
 

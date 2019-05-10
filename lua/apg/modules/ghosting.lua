@@ -20,9 +20,7 @@
 
 local mod = "ghosting"
 
---[[------------------------------------------
-		Override base functions
-]]--------------------------------------------
+--[[ Override base functions ]]
 local ENT = FindMetaTable( "Entity" )
 APG._SetCollisionGroup = APG._SetCollisionGroup or ENT.SetCollisionGroup
 
@@ -41,7 +39,6 @@ function ENT:SetCollisionGroup( group )
 		group = COLLISION_GROUP_INTERACTIVE
 	end
 
-	APG.debug("Collision Group set to " .. group .. " on " .. tostring(self))
 	return APG._SetCollisionGroup( self, group )
 end
 
@@ -62,7 +59,6 @@ function ENT:SetColor( color, ... )
 	end
 
 	assert( IsColor(color), "Invalid color passed to SetColor! \n This error prevents stuff from turning purple/pink." )
-	APG.debug(tostring(self) .. " was set to color " .. tostring(color))
 	return APG._SetColor( self, color )
 end
 
@@ -170,8 +166,6 @@ function APG.entGhost( ent, noCollide, enforce )
 			ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
 		end
 
-		APG.debug(tostring(ent) .. " was ghosted!")
-
 		ent:CollisionRulesChanged()
 	end
 end
@@ -204,7 +198,7 @@ function APG.entUnGhost( ent, ply, failmsg )
 			ent:CollisionRulesChanged()
 			return true
 		else
-			APG.notification( failmsg or "There is something in this prop!", ply, 1 )
+			APG.notify( false, 1, ply, failmsg or "There is something in this prop!" )
 			ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 
 			ent:CollisionRulesChanged()
@@ -248,11 +242,9 @@ APG.hookAdd( mod, "PlayerUnfrozeObject", "APG_unFreezeInteract", function (ply, 
 	if not APG.canPhysGun( ent, ply, "APG_unFreezeInteract" ) then return end
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	if APG.cfg[ "alwaysFrozen" ].value then
-		APG.debug("[APG-UNFREEZE]" .. ply:Nick() .. " unfroze " .. ent:GetName() .. " but alwaysFrozen is enabled!")
 		return false
 	end -- Do not unfreeze if Always Frozen is enabled !
 	if ent:GetCollisionGroup( ) ~= COLLISION_GROUP_WORLD then
-		APG.debug("[APG-UNFREEZE]" .. ply:Nick() .. " unfroze " .. ent:GetName())
 		ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
 	end
 end)
@@ -260,7 +252,6 @@ end)
 APG.dJobRegister( "unghost", 0.1, 50, function( ent )
 	if IsValid(ent) then
 		APG.entUnGhost( ent )
-		APG.debug(tostring(ent) .. " was unghosted in dJobRegister.")
 	end
 end)
 
@@ -309,9 +300,7 @@ APG.hookAdd( mod, "OnEntityCreated", "APG_noCollideOnCreate", function( ent )
 			owner = "console"
 		end
 
-		APG.entGhost( ent )
-		
-		APG.debug(spawnedEnt .. " was spawned by " .. owner .. " and was ghosted.")
+		APG.entGhost( ent )		
 	end)
 
 	timer.Simple( 0, function()
@@ -343,7 +332,7 @@ local BlockedProperties = { "collision", "persist", "editentity", "drive", "igni
 APG.hookAdd( mod, "CanProperty", "APG_canProperty", function(ply, property, ent)
 	local property = tostring( property )
 	if ( table.HasValue(BlockedProperties, property) and ent.APG_Ghosted ) then
-		APG.notification( "Cannot set " .. property .. " properties on ghosted entities!", ply, -1, true)
+		APG.notify( false, 1, ply, "Cannot set", property, "properties on ghosted entities!" )
 		return false
 	end
 end)
@@ -373,8 +362,7 @@ local function checkDoor(ply, ent)
 				ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE )
 
 				if IsValid(isTrap) then
-					APG.debug("Cant Unstuck " .. ply:GetName() .. " from " .. ent)
-					APG.notification( "Unable to unstuck objects from fading door!", ply, 1 )
+					APG.notify( false, 1, ply, "Unable to unstuck objects from fading door!" )
 					APG.entGhost(ent)
 				end
 			end
@@ -395,9 +383,7 @@ APG.hookAdd(mod, "APG.FadingDoorToggle", "APG_FadingDoor", function(ent, isFadin
 	end
 end)
 
---[[------------------------------------------
-		Load hooks and timers
-]]--------------------------------------------
+--[[ Load hooks and timers ]]
 
 APG.updateHooks(mod)
 APG.updateTimers(mod)

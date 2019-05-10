@@ -38,7 +38,7 @@ function APG.checkStack( ent, pcount )
 	end
 end
 
-APG.hookAdd(mod, "PhysgunPickup", "APG_stackCheck", function(ply, ent)
+APG.hookAdd(mod, "PhysgunPickup", "APG_stackCheck",function(ply, ent)
 	if not APG.canPhysGun( ent, ply, "APG_stackCheck" ) then return end
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 	APG.checkStack( ent )
@@ -84,9 +84,7 @@ APG.hookAdd(mod, "APG.FadingDoorToggle", "APG_fadingDoorStackCheck", function(en
 	lastCall = curTime + 0.001
 end)
 
---[[--------------------
-	Stacker Exploit Quick Fix
-]]----------------------
+--[[ Stacker Exploit Quick Fix ]]
 hook.Add( "InitPostEntity", "APG_InitStackFix", function()
 	timer.Simple(60, function()
 		local TOOL = weapons.GetStored("gmod_tool")["Tool"][ "stacker" ] or weapons.GetStored("gmod_tool")["Tool"][ "stacker_v2" ]
@@ -107,9 +105,7 @@ hook.Add( "InitPostEntity", "APG_InitStackFix", function()
 	end)
 end)
 
---[[------------------------------------------
-		Load hooks and timers
-]]--------------------------------------------
+--[[ Load hooks and timers ]]
 
 APG.updateHooks(mod)
 APG.updateTimers(mod)

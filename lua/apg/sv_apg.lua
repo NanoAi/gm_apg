@@ -5,9 +5,7 @@ local IsValid = IsValid
 local table = table
 local isentity = isentity
 
---[[------------------------------------------
-			ENTITY Related
-]]--------------------------------------------
+--[[ ENTITY Related ]]
 
 	--[[
 		Check if the player can pick up the entity
@@ -184,23 +182,23 @@ function APG.cleanUp( mode, notify, specific )
 			v:Remove()
 		end
 	end
-	-- TODO : Fancy notify system
+
 	if notify or APG.cfg["notifyLagFunc"].value then
-		APG.notification("Cleaned up (mode: " .. mode .. ")", APG.cfg["notifyLevel"].value, 2)
+		APG.notify( false, 2, "all", APG.cfg["notifyLevel"].value, "Cleaned up (mode: ", mode, ")" )
 	end
 end
 
 function APG.ghostThemAll( notify, callback )
 	if not APG.modules[ "ghosting" ] then
-		return APG.notification("[APG] Warning: Tried to ghost props but ghosting is disabled!", 1, 0, true)
+		return APG.notify( false, 0, "admins", "[APG] Warning: Tried to ghost props but ghosting is disabled!" )
 	end
 	for _, v in next, ents.GetAll() do
 		if ( not APG.isBadEnt(v) ) or ( not APG.getOwner( v ) ) or APG.IsVehicle(v) or v.APG_Frozen then continue end
 		APG.entGhost( v, true, false  )
 	end
-	-- TODO : Fancy notify system
+
 	if notify or APG.cfg["notifyLagFunc"].value then
-	  APG.notification("Unfrozen props ghosted!", APG.cfg["notifyLevel"].value, 1)
+	  APG.notify( false, APG.cfg["notifyLevel"].value, "admins", "Some unfrozen entities were ghosted!" )
 	end
 
 	if isfunction(callback) then
@@ -213,9 +211,9 @@ function APG.freezeProps( notify, callback )
 		if not APG.isBadEnt(v) or not APG.getOwner( v ) then continue end
 		APG.freezeIt( v )
 	end
-	-- TODO : Fancy notify system
+
 	if notify or APG.cfg["notifyLagFunc"].value then
-	  APG.notification("Props frozen", APG.cfg["notifyLevel"].value, 0)
+		APG.notify(false, APG.cfg["notifyLevel"].value, "all", "Some entities were frozen!")
 	end
 
 	if isfunction(callback) then
@@ -333,9 +331,7 @@ function APG.blockPickup( ply )
 end
 
 
---[[------------------------------------------
-	Entity pickup part
-]]--------------------------------------------
+--[[ Entity pickup part ]]
 
 hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
 	if not APG.isBadEnt( ent ) then return end
@@ -394,13 +390,9 @@ hook.Add("PlayerUnfrozeObject", "APG_PlayerUnfrozeObject", function(ply, ent, ob
 	ent.APG_Frozen = false
 end)
 
---[[------------------------------------------
-	Entity drop part
-]]--------------------------------------------
+--[[ Entity drop part ]]
 
---[[--------------------
-	PhysGun Drop and Anti Throw Props
-]]----------------------
+--[[ PhysGun Drop and Anti Throw Props ]]
 hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
 	ent.APG_HeldBy = ent.APG_HeldBy or {}
 

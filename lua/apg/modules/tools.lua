@@ -29,9 +29,7 @@ function APG.canTool( ply, tool, ent )
 	return 0 -- return 0 so if all of the check's don't return anything then it doesn't default to disabling toolgun.
 end
 
---[[--------------------
-	APG CanTool Check
-]]----------------------
+--[[ APG CanTool Check ]]
 
 APG.hookAdd(mod, "CanTool", "APG_ToolMain", function(ply, tr, tool)
 	if not APG.canTool(ply, tool, tr.Entity) then
@@ -39,9 +37,7 @@ APG.hookAdd(mod, "CanTool", "APG_ToolMain", function(ply, tr, tool)
 	end
 end)
 
---[[--------------------
-	Tool Spam Control
-]]----------------------
+--[[ Tool Spam Control ]]
 
 APG.hookAdd(mod, "CanTool", "APG_ToolSpamControl", function(ply)
 	if not APG.cfg[ "blockToolSpam" ].value then return end
@@ -69,12 +65,12 @@ APG.hookAdd(mod, "CanTool", "APG_ToolSpamControl", function(ply)
 	if diff > 0 then
 		ply.toolUseTimes = math.max( ply.toolUseTimes - 1, 0 )
 	else
-		ply.toolUseTimes = math.min( ply.toolUseTimes + 1, APG.cfg[ "blockToolRate" ].value )
-		if ply.toolUseTimes >= APG.cfg[ "blockToolRate" ].value then
-			ply.toolDelay = ply.curTime + delay
-			if not ply.wasNotified then
-				ply.wasNotified = true
-				APG.notification( "You are using the toolgun too fast, slow down!", plyr, 1 )
+		data.toolUseTimes = math.min( data.toolUseTimes + 1, APG.cfg[ "blockToolRate" ].value )
+		if data.toolUseTimes >= APG.cfg[ "blockToolRate" ].value then
+			data.toolDelay = data.curTime + delay
+			if not data.wasNotified then
+				data.wasNotified = true
+				APG.notify( false, 1, ply, "You are using the toolgun too fast, slow down!" )
 			end
 			return false
 		end
@@ -85,24 +81,20 @@ APG.hookAdd(mod, "CanTool", "APG_ToolSpamControl", function(ply)
 	end
 end)
 
---[[--------------------
-	Block Tool World
-]]----------------------
+--[[ Block Tool World ]]
 
 APG.hookAdd(mod, "CanTool", "APG_ToolWorldControl", function(ply, tr)
 	if not APG.cfg[ "blockToolWorld" ].value then return end
 	if tr.HitWorld then
 		if not timer.Exists("APG-" .. ply:UniqueID() .. "-Notify") then
-			APG.notification( "You may not use the toolgun on the world.", ply, 1 )
+			APG.notify( false, 1, ply, "You may not use the toolgun on the world." )
 			timer.Create("APG-" .. ply:UniqueID() .. "-Notify", 5, 1, function() end)
 		end
 		return false
 	end
 end)
 
---[[--------------------
-	Block Tool Unfreeze
-]]----------------------
+--[[ Block Tool Unfreeze ]]
 
 APG.hookAdd(mod, "CanTool", "APG_ToolUnfreezeControl", function(ply, tr)
 	if not APG.cfg[ "blockToolUnfreeze" ].value then return end
@@ -128,9 +120,7 @@ if conVar then
 	end
 end
 
---[[------------------------------------------
-		Load hooks and timers
-]]--------------------------------------------
+--[[ Load hooks and timers ]]
 
 APG.updateHooks(mod)
 APG.updateTimers(mod)

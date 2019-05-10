@@ -1,18 +1,12 @@
---[[------------------------------------------
-			INITIALIZE APG
-]]--------------------------------------------
+--[[ INITIALIZE APG ]]
 APG = {}
 APG.modules =  APG.modules or {}
---[[------------------------------------------
-			CLIENT related
-]]--------------------------------------------
+--[[ CLIENT related ]]
 AddCSLuaFile("apg/sh_config.lua")
 AddCSLuaFile("apg/cl_utils.lua")
 AddCSLuaFile("apg/cl_menu.lua")
 
---[[------------------------------------------
-			REGISTER Modules
-]]--------------------------------------------
+--[[ REGISTER Modules ]]
 local modules, _ = file.Find("apg/modules/*.lua","LUA")
 for _,v in next, modules do
 	if v then
@@ -107,10 +101,9 @@ function APG.unLoad( module )
 	end
 
 	print("[APG] " .. module .. " unloaded.")
-
 end
 
-function APG.reload( )
+function APG.reload()
 	for k, v in next, APG.modules do
 		if APG.modules[ k ] == true then
 			APG.unLoad( k )
@@ -121,6 +114,16 @@ function APG.reload( )
 	end
 end
 
+
+--[[ local settings = {}
+function APG.sampleServerSettings()
+
+end
+
+function APG.getServerSettings()
+
+end ]]
+
 function APG.initialize()
 	for k, v in next, APG.modules do
 		if APG.modules[k] == true then
@@ -129,10 +132,7 @@ function APG.initialize()
 	end
 end
 
-
---[[------------------------------------------
-			LOADING
-]]--------------------------------------------
+--[[ LOADING ]]
 -- Loading config first
 include( "apg/sh_config.lua" )
 -- Loading APG main functions
@@ -140,9 +140,7 @@ include( "apg/sv_apg.lua") -- Modules loaded at the bottom
 -- Loading APG menu
 include( "apg/sv_menu.lua" )
 
---[[------------------------------------------
-			CVars INIT
-]]--------------------------------------------
+--[[ CVars INIT ]]
 
 concommand.Add("apg_set", function( ply, cmd, args, argStr )
 	if not ply:IsSuperAdmin() then return end

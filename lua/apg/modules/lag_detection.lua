@@ -21,9 +21,7 @@
 local mod = "lag_detection"
 local table = table
 
---[[--------------------
-	Lag fixing functions
-]]----------------------
+--[[ Lag fixing functions ]]
 
 local lagFix = {
 	cleanup_all = function( ) APG.cleanUp( "all" ) end,
@@ -34,9 +32,7 @@ local lagFix = {
 	custom_function = APG.customFunc,
 }
 
---[[--------------------
-	Lag detection vars
-]]----------------------
+--[[ Lag detection vars ]]
 
 local lastTick = 0
 local tickDelta = 0
@@ -153,15 +149,13 @@ APG.hookAdd( mod, "Tick", "APG_lagDetection", function()
 	lastTick = sysTime
 end)
 
---[[--------------------
-	Utils
-]]----------------------
+--[[ Utils ]]
 
 hook.Remove( "APG_lagDetected", "main") -- Sometimes, I dream about cheese.
 hook.Add( "APG_lagDetected", "main", function()
 	if not APG then return end
 
-	APG.notification( "!WARNING LAG DETECTED!", APG.cfg["notifyLevel"].value, 2 )
+	APG.notify( true, APG.cfg["notifyLevel"].value, "all", "!WARNING LAG DETECTED!" )
 
 	local funcName = APG.cfg[ "lagFunc" ].value
 	local func = lagFix[ funcName ]
@@ -184,9 +178,7 @@ hook.Add( "APG_lagDetected", "main", function()
 	end
 end)
 
---[[------------------------------------------
-	Load hooks and timers
-]]--------------------------------------------
+--[[ Load hooks and timers ]]
 
 APG.updateHooks(mod)
 APG.updateTimers(mod)

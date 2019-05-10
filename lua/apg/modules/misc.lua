@@ -15,9 +15,7 @@
 ]]--------------------------------------------
 local mod = "misc"
 
---[[--------------------
-	Helper functions
-]]----------------------
+--[[ Helper functions ]]
 local function isVehDamage( dmg, atk, ent )
 	if not IsValid( ent ) then return false end
 	if dmg:GetDamageType() == DMG_VEHICLE or APG.IsVehicle( atk ) or APG.IsVehicle( ent ) then
@@ -31,9 +29,7 @@ local function getPhys(ent)
 	return ( phys and IsValid(phys) ) and phys or false
 end
 
---[[--------------------
-	No Collide vehicles on spawn
-]]----------------------
+--[[ No Collide vehicles on spawn ]]
 APG.hookAdd( mod,"OnEntityCreated", "APG_noCollideVeh", function( ent )
 	timer.Simple(0.03, function()
 		if APG.cfg[ "vehNoCollide" ].value and APG.IsVehicle( ent ) then
@@ -42,9 +38,7 @@ APG.hookAdd( mod,"OnEntityCreated", "APG_noCollideVeh", function( ent )
 	end)
 end)
 
---[[--------------------
-	Disable prop damage
-]]----------------------
+--[[ Disable prop damage ]]
 APG.hookAdd( mod, "EntityTakeDamage","APG_noPropDmg", function( target, dmg )
 	if ( not APG.cfg[ "allowPK" ].value ) then -- Check if prop kill is allowed, before checking anything else.
 		local atk, ent = dmg:GetAttacker(), dmg:GetInflictor()
@@ -56,40 +50,53 @@ APG.hookAdd( mod, "EntityTakeDamage","APG_noPropDmg", function( target, dmg )
 	end
 end)
 
---[[--------------------
-	Block Physgun Reload
-]]----------------------
+--[[ Remove Invalid Physics ]]
+APG.hookAdd( mod, "OnEntityCreated", "APG_removeInvalidPhysics", function( ent )
+	if ( not APG.cfg[ "removeInvalidPhysics" ].value ) then return end
+
+	timer.Simple(0, function()
+		if not IsValid( ent ) then return end
+		
+		local model = ent:GetModel()
+		local owner = APG.getOwner( ent )
+		local phys = ent:GetPhysicsObject()
+
+		if IsValid( owner ) and owner:IsPlayer() then
+			if ( not model ) or string.lower(string.sub(model, 1, 6)) ~= "models" then
+				SafeRemoveEntity( ent )
+				return
+			end
+			if ( not IsValid( physObj ) ) and ( not APG.cfg["invalidPhysicsWhitelist"].value[model] ) then
+				SafeRemoveEntity( ent )
+			end
+		end
+	end)
+end)
+
+--[[ Block Physgun Reload ]]
 APG.hookAdd( mod, "OnPhysgunReload", "APG_blockPhysgunReload", function( _, ply )
 	if APG.cfg[ "blockPhysgunReload" ].value then
-		--APG.notification("Physgun Reloading is Currently Disabled", ply, 1)
 		return false
 	end
 end)
 
---[[--------------------
-	Block Gravitygun Throwing
-]]----------------------
+--[[ Block Gravitygun Throwing ]]
 APG.hookAdd( mod, "GravGunOnDropped", "APG_blockGravGunThrow", function(ply, ent)
 	if ( not APG.cfg["blockGravGunThrow"].value ) then return end
 	APG.killVelocity(ent, false, false, true)
 end)
 
---[[--------------------
-	Auto prop freeze
-]]----------------------
+--[[ Auto prop freeze ]]
 APG.timerAdd( mod, "APG_autoFreeze", APG.cfg[ "autoFreezeTime" ].value, 0, function()
 	if APG.cfg[ "autoFreeze" ].value then
 		APG.freezeProps()
 	end
 end)
 
---[[--------------------
-	Fading door management
-]]----------------------
-
+--[[ Fading door management ]]
 APG.hookAdd(mod, "CanTool", "APG_fadingDoorTool", function(ply, tr, tool)
 	if IsValid(tr.Entity) and tr.Entity.APG_Ghosted then
-		APG.notification("Cannot use tool on ghosted entity!", ply, 1)
+		APG.notify(false, 1, ply, "Cannot use tool on ghosted entity!")
 		return false
 	end
 
@@ -179,14 +186,13 @@ end)
 --[[ FRZR9K ]]--
 
 local zero = Vector(0,0,0)
-local pstop = FrameTime() * 3
 
-APG.timerAdd(mod, "frzr9k", pstop, 0, function()
-	if APG.cfg["sleepyPhys"].value then
-		for _,v in next, ents.GetAll() do
+APG.timerAdd(mod, "frzr9k", 4, 0, function()
+	if not APG.cfg["sleepyPhys"].value then return end
+	for _,v in next, ents.GetAll() do
+		if APG.isBadEnt( v ) then
 			local phys = getPhys( v )
-			local isBadEnt = APG.isBadEnt( v )
-			if isBadEnt and phys and ( phys:IsMotionEnabled() and not v:IsPlayerHolding() ) then
+			if phys and ( phys:IsMotionEnabled() and not v:IsPlayerHolding() ) then
 				local vel = v:GetVelocity()
 				if vel:Distance(zero) <= 23 then
 					phys:Sleep()

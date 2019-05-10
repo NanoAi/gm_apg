@@ -75,13 +75,13 @@ local function contextCMD(_,ply)
 	if cmd == "addghost" then
 		if not APG.cfg.badEnts.value[class] then
 			APG.cfg.badEnts.value[class] = true
-			APG.notification("\"" .. class .. "\" added to Ghost List!", ply)
+			APG.notify( false, 0, ply, "\"", class, "\" added to Ghost List!" )
 		else
-			APG.notification("This class is already listed!", ply)
+			APG.notify( false, 0, ply, "This class is already listed!" )
 		end
 	elseif cmd == "remghost" then
 		APG.cfg.badEnts.value[class] = nil
-		APG.notification("\"" .. class .. "\" removed from the Ghost List!", ply)
+		APG.notify( false, 0, ply, "\"", class, "\" removed from Ghost List!" )
 	elseif cmd == "clearowner" then
 		if not checkOwner(owner, ply) then return end
 		cleanup.CC_Cleanup(owner,"gmod_cleanup",{})
@@ -98,13 +98,13 @@ local function contextCMD(_,ply)
 			end
 		end
 
-		APG.notification(tostring(count) .. " entities have been removed!", ply)
+		APG.notify( false, 0, ply, count, "entities have been removed!" )
 	elseif cmd == "getownercount" then
 		if not checkOwner(owner, ply) then return end
 		local count = 0
 		count = owner:GetCount("props")
 
-		APG.notification(tostring(owner:Nick()) .. " has " .. count .. (count == 1 and " entity." or " entities."), ply)
+		APG.notify( false, 0, ply, owner:Nick(), "has", count, (count == 1 and "entity." or "entities.") )
 	elseif cmd == "freezeclass" then
 		local count = 0
 		for _,v in next, ents.FindByClass(class) do
@@ -113,7 +113,8 @@ local function contextCMD(_,ply)
 				APG.killVelocity(v, false, true, false)
 			end
 		end
-		APG.notification((count or 0) .. (count == 1 and " Entity" or " Entities") .. " Frozen", ply)
+
+		APG.notify( false, 0, ply, (count or 0), (count == 1 and "Entity" or "Entities"), "Frozen" )
 	elseif cmd == "sleepclass" then
 		local count = 0
 		for _,v in next, ents.FindByClass(class) do
@@ -122,7 +123,8 @@ local function contextCMD(_,ply)
 				APG.killVelocity(v, false, false, false)
 			end
 		end
-		APG.notification((count or 0) .. (count == 1 and " Entity is" or " Entities are") .. " now Sleeping", ply)
+
+		APG.notify( false, 0, ply, (count or 0), (count == 1 and "Entity is" or "Entities are"), "now Sleeping!" )	
 	elseif cmd == "ghost" then
 		APG.entGhost(ent)
 		APG.notification(ent:GetName() .. " was ghosted.")

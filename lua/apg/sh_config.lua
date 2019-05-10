@@ -46,7 +46,6 @@ defaultSettings.modules = { -- Set to true to enable and false to disable module
 	["tools"] = true,
 	["notification"] = true,
 	["logs"] = true,
-	["remove_invalid_physics"] = true,
 }
 
 defaultSettings.cfg = {
@@ -73,6 +72,11 @@ defaultSettings.cfg = {
 			["zmlab_"] = false,
 		},
 		desc = "Entities that should be set back to their original (spawned) collision group when frozen/dropped."
+	},
+
+	removeInvalidPhysics = {
+		value = false,
+		desc = "Should we attempt to detect and remove invalid physics objects? (Entities with bad or no physics objects/Physics objects without models.)"
 	},
 
 	invalidPhysicsWhitelist = {

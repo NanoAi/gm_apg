@@ -10,7 +10,7 @@ if APG.modules[ mod ] and GAS.Logging then
     MODULE:Setup(function()
 
         MODULE:Hook("APG_logsLagDetected", "APG.logs.lagDetected", function()
-            
+
             if not APG.cfg["logLagDetected"].value then return end
 
             MODULE:Log("Lag detected, running lag function {1} to prevent further lag.", GAS.Logging:Highlight(APG.cfg["lagFunc"].value))

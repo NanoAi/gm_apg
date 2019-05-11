@@ -27,7 +27,7 @@ local function isVehDamage( dmg, atk, ent )
 end
 
 local function getPhys(ent)
-	local phys = IsValid(ent) and ent.GetPhysicsObject and ent:GetPhysicsObject() or false
+	local phys = ent.GetPhysicsObject and ent:GetPhysicsObject() or false
 	return ( phys and IsValid(phys) ) and phys or false
 end
 
@@ -194,8 +194,7 @@ end)
 local zero = Vector(0,0,0)
 
 local function sleepyPhys(phys)
-	-- Don't check IsValid, instead check if exists and type check. (Faster?)
-	if phys and ( type(phys.GetVelocity) == "function" and type(phys.Sleep) == "function" ) then
+	if not phys:IsAsleep() then
 		local vel = phys:GetVelocity()
 		if vel:Distance(zero) <= 23 then
 			phys:Sleep()
@@ -203,13 +202,16 @@ local function sleepyPhys(phys)
 	end
 end
 
-APG.hookAdd(mod, "OnEntityCreated", "frzr9k-p1", function(ent)
+APG.timerAdd(mod, "frzr9k-p1", 5, 0, function(ent)
 	if APG.cfg["sleepyPhys"].value then
-		wait(function()
-			if APG.isBadEnt( ent ) and getPhys( ent ) then
-				ent:AddCallback("PhysicsUpdate", sleepyPhys)
+		for _, v in next, ents.GetAll() do
+			if v.APG_Frozen == false then
+				local phys = getPhys( v )
+				if APG.isBadEnt( v ) and phys then
+					sleepyPhys( phys )
+				end
 			end
-		end)
+		end
 	end
 end)
 
@@ -241,11 +243,11 @@ local function collcall(ent, data)
 			local mem = obj.CollisionTime
 
 			while true do
-			mem = mem + 5
-			subtract = subtract + 1
-			if mem >= obj.LastCollision then
-				break
-			end
+				mem = mem + 5
+				subtract = subtract + 1
+				if mem >= obj.LastCollision then
+					break
+				end
 			end
 
 			obj.Collisions = (obj.Collisions - subtract)

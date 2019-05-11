@@ -28,10 +28,10 @@ local function APGBuildStackPanel()
 	panel.Paint = function( i, w, h ) end
 
 	menu:initPanel( panel, 0, 40, 0, 35 )
-	menu:numSlider( 575, 20, "Maximum stacked ents", "stackMax", 3, 50, 0 )
-	menu:numSlider( 575, 20, "Stack distance (gmod units)", "stackArea", 5, 50, 0 )
-	menu:numSlider( 575, 20, "Maximum stacked fading doors", "fadingDoorStackMax", 5, 50, 0 )
-	menu:switch( 575, 20, "Notify player when their fading door is removed.", "fadingDoorStackNotify" )
+	menu:numSlider( 568, 20, "Maximum stacked ents", "stackMax", 3, 50, 0 )
+	menu:numSlider( 568, 20, "Stack distance (gmod units)", "stackArea", 5, 50, 0 )
+	menu:numSlider( 568, 20, "Maximum stacked fading doors", "fadingDoorStackMax", 5, 50, 0 )
+	menu:switch( 568, 20, "Notify player when their fading door is removed.", "fadingDoorStackNotify" )
 	menu:panelDone()
 end
 
@@ -40,14 +40,14 @@ local function APGBuildToolsPanel()
 	panel.Paint = function( i, w, h ) end
 
 	menu:initPanel( panel, 0, 40, 0, 35 )
-	menu:switch( 575, 20, "Should tools be blocked on APG_CantPickup", "checkCanTool" )
-	menu:switch( 575, 20, "Block players from spamming the toolgun", "blockToolSpam" )
-	menu:numSlider( 575, 20, "Max click's per second(s)", "blockToolRate", 1, 15, 0 ) -- It's really hard to click more then 15 times a second.
-	menu:numSlider( 575, 20, "The aforementioned second(s)", "blockToolDelay", 1, 5, 0 )
-	menu:switch( 575, 20, "Prevent using the toolgun on the world", "blockToolWorld" )
-	menu:switch( 575, 20, "Prevent the toolgun from unfreezing props", "blockToolUnfreeze" )
-	menu:switch( 575, 20, "Block the Creator Tool?", "blockCreatorTool" )
-	menu:switch( 575, 20, "Review entities near tool use", "checkTooledEnts" )
+	menu:switch( 568, 20, "Should tools be blocked on APG_CantPickup", "checkCanTool" )
+	menu:switch( 568, 20, "Block players from spamming the toolgun", "blockToolSpam" )
+	menu:numSlider( 568, 20, "Max click's per second(s)", "blockToolRate", 1, 15, 0 ) -- It's really hard to click more then 15 times a second.
+	menu:numSlider( 568, 20, "The aforementioned second(s)", "blockToolDelay", 1, 5, 0 )
+	menu:switch( 568, 20, "Prevent using the toolgun on the world", "blockToolWorld" )
+	menu:switch( 568, 20, "Prevent the toolgun from unfreezing props", "blockToolUnfreeze" )
+	menu:switch( 568, 20, "Block the Creator Tool?", "blockCreatorTool" )
+	menu:switch( 568, 20, "Review entities near tool use", "checkTooledEnts" )
 	menu:panelDone()
 end
 
@@ -56,19 +56,19 @@ local function APGBuildMiscPanel()
 	panel.Paint = function( i, w, h ) end
 
 	menu:initPanel( panel, 0, 40, 0, 35 )
-	menu:switch( 575, 20, "Auto freeze over time", "autoFreeze" )
-	menu:numSlider( 575, 20, "Auto freeze delay(seconds)", "autoFreezeTime", 5, 600, 0 )
-	menu:switch( 575, 20, "Disable vehicle damages", "vehDamage" )
-	menu:switch( 575, 20, "Disable vehicle collisions (with players)", "vehNoCollide" )
+	menu:switch( 568, 20, "Auto freeze over time", "autoFreeze" )
+	menu:numSlider( 568, 20, "Auto freeze delay(seconds)", "autoFreezeTime", 5, 600, 0 )
+	menu:switch( 568, 20, "Disable vehicle damages", "vehDamage" )
+	menu:switch( 568, 20, "Disable vehicle collisions (with players)", "vehNoCollide" )
 	menu:numSlider(575, 20, "Physgun maxrange (how far they can reach in gmod units)", "physGunMaxRange", 128, 8192, 0)
-	menu:switch( 575, 20, "Block GravGun throwing", "blockGravGunThrow" )
-	menu:switch( 575, 20, "Block Physgun Reload", "blockPhysgunReload" )
-	menu:switch( 575, 20, "Block players from moving contraptions", "blockContraptionMove" )
-	menu:switch( 575, 20, "Inject custom hooks into Fading Doors", "fadingDoorHook" )
-	menu:switch( 575, 20, "Activate FRZR9K (Sleepy Physics)", "sleepyPhys" )
-	menu:switch( 575, 20, "Hook FRZR9K into collision (Experimental)", "sleepyPhysHook" )
-	menu:switch( 575, 20, "Allow prop killing", "allowPK" )
-	menu:switch( 575, 20, "Block flashlight spam", "blockFlashlightSpam" )
+	menu:switch( 568, 20, "Block GravGun throwing", "blockGravGunThrow" )
+	menu:switch( 568, 20, "Block Physgun Reload", "blockPhysgunReload" )
+	menu:switch( 568, 20, "Block players from moving contraptions", "blockContraptionMove" )
+	menu:switch( 568, 20, "Inject custom hooks into Fading Doors", "fadingDoorHook" )
+	menu:switch( 568, 20, "Activate FRZR9K (Sleepy Physics)", "sleepyPhys" )
+	menu:switch( 568, 20, "Hook FRZR9K into collision (Experimental)", "sleepyPhysHook" )
+	menu:switch( 568, 20, "Allow prop killing", "allowPK" )
+	menu:switch( 568, 20, "Block flashlight spam", "blockFlashlightSpam" )
 	menu:panelDone()
 end
 
@@ -77,11 +77,11 @@ local function APGBuildLagPanel()
 	panel.Paint = function( i, w, h ) end
 
 	menu:initPanel( panel, 0, 40, 0, 35 )
-	menu:numSlider( 575, 20, "Lag threshold (%)", "lagTrigger", 5, 200, 0 )
-	menu:numSlider( 575, 20, "Frames lost", "lagsCount", 1, 20, 0 )
-	menu:numSlider( 575, 20, "Heavy lag trigger (seconds)", "bigLag", 1, 5, 1 )
-	menu:comboBox( 575, 20, "Lag fix function", "lagFunc", APG_lagFuncs )
-	menu:numSlider( 575, 20, "Lag func. delay (seconds)", "lagFuncTime", 1, 300, 0 )
+	menu:numSlider( 568, 20, "Lag threshold (%)", "lagTrigger", 5, 200, 0 )
+	menu:numSlider( 568, 20, "Frames lost", "lagsCount", 1, 20, 0 )
+	menu:numSlider( 568, 20, "Heavy lag trigger (seconds)", "bigLag", 1, 5, 1 )
+	menu:comboBox( 568, 20, "Lag fix function", "lagFunc", APG_lagFuncs )
+	menu:numSlider( 568, 20, "Lag func. delay (seconds)", "lagFuncTime", 1, 300, 0 )
 	menu:panelDone()
 end
 
@@ -90,10 +90,10 @@ local function APGBuildNotificationPanel()
 	panel.Paint = function( i, w, h ) end
 
 	menu:initPanel( panel, 0, 40, 0, 35 )
-	menu:switch( 575, 20, "Notification Sounds", "notifySounds" )
-	menu:numSlider( 575, 20, "Notification Level", "notifyLevel", 1, 3, 0 )
-	menu:switch( 575, 20, "Do you want to show which lag function ran?", "notifyLagFunc" )
-	menu:switch( 575, 20, "Developer logs (shows a notification, is spammy)", "developerDebug" )
+	menu:switch( 568, 20, "Notification Sounds", "notifySounds" )
+	menu:numSlider( 568, 20, "Notification Level", "notifyLevel", 1, 3, 0 )
+	menu:switch( 570, 20, "Do you want to show what lag function ran?", "notifyLagFunc" )
+	menu:switch( 568, 20, "Developer logs (shows a notification, is spammy)", "developerDebug" )
 	menu:panelDone()
 end
 
@@ -102,8 +102,8 @@ local function APGBuildLogsPanel()
 	panel.Paint = function( i, w, h ) end
 
 	menu:initPanel( panel, 0, 40, 0, 35 )
-	menu:switch( 575, 20, "Should we log when there is lag detected?", "logLagDetected" )
-	menu:switch( 575, 20, "Should we log when a player attempts to crash the server", "logStackCrashAttempt" )
+	menu:switch( 568, 20, "Should we log when there is lag detected?", "logLagDetected" )
+	menu:switch( 568, 20, "Should we log when a player attempts to crash the server", "logStackCrashAttempt" )
 	menu:panelDone()
 end
 
@@ -403,6 +403,7 @@ local function openMenu( len )
 	local first = true
 
 	for k, v in next, APG.modules do
+		if k == "canphysgun" then continue end
 		local panel = vgui.Create( "DScrollPanel", APG_Main )
 		setScrollerTheme( panel:GetVBar() )
 
@@ -441,6 +442,7 @@ local function openMenu( len )
 	local height = ( sidebar:GetTall()/5 )
 
 	for k, v in next, APG.modules do
+		if k == "canphysgun" then continue end
 		local button = sidebar:Add( "DButton" )
 		button:SetPos( 5, (height + 5) * i)
 		button:SetSize( sidebar:GetWide() - 10 , height )

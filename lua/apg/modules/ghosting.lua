@@ -39,7 +39,7 @@ function ENT:SetCollisionGroup( group )
 		group = COLLISION_GROUP_INTERACTIVE
 	end
 
-	return APG._SetCollisionGroup( self, group )
+	APG._SetCollisionGroup( self, group )
 end
 
 APG._SetColor = APG._SetColor or ENT.SetColor
@@ -58,8 +58,11 @@ function ENT:SetColor( color, ... )
 		color = Color(r, g, b, a)
 	end
 
-	assert( IsColor(color), "Invalid color passed to SetColor! \n This error prevents stuff from turning purple/pink." )
-	return APG._SetColor( self, color )
+	if not IsColor(color) then
+		ErrorNoHalt( "Invalid color passed to SetColor! \n This error prevents stuff from turning purple/pink." )
+	else
+		APG._SetColor( self, color )
+	end
 end
 
 local PhysObj = FindMetaTable( "PhysObj" )
@@ -166,6 +169,16 @@ function APG.entGhost( ent, noCollide, enforce )
 			ent:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
 		end
 
+		do -- Fix magic surfing
+			local phys = ent:GetPhysicsObject()
+			if IsValid(phys) then
+				phys:EnableCollisions( false )
+				timer.Simple(0, function()
+					phys:EnableCollisions( true )
+				end)
+			end
+		end
+
 		ent:CollisionRulesChanged()
 	end
 end
@@ -221,8 +234,8 @@ end
 		Hooks/Timers
 ]]--------------------------------------------
 
-APG.hookAdd( mod, "PhysgunPickup", "APG_makeGhost", function(ply, ent)
-	if not APG.canPhysGun( ent, ply, "APG_makeGhost" ) then return end
+APG.hookAdd( mod, "APG_PostPhysgunPickup", "APG_makeGhost", function( ply, ent, canPickup )
+	if not canPickup then return end
 	if not APG.modules[ mod ] or not APG.isBadEnt( ent ) then return end
 
 	ent.APG_Picked = true

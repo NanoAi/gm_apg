@@ -42,9 +42,10 @@ defaultSettings.modules = { -- Set to true to enable and false to disable module
 	["ghosting"] = true,
 	["stack_detection"] = true,
 	["lag_detection"] = true,
+	["notification"] = true,
+	["canphysgun"] = true, -- Essential, do not disable.
 	["misc"] = true,
 	["tools"] = true,
-	["notification"] = true,
 	["logs"] = true,
 }
 

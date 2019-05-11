@@ -15,7 +15,13 @@ local isentity = isentity
 	]]
 
 function APG.canPhysGun( ent, ply )
+	-- Predict if the player can pickup an entity.
 	if not IsValid(ent) then return false end -- The entity isn't valid, don't pickup.
+
+	if ent:GetPersistent() then 
+		return false
+	end
+
 	if ent.PhysgunDisabled then
 		return false
 	end -- Check if the entity is physgun disabled.
@@ -316,6 +322,7 @@ function APG.ForcePlayerDrop(ply, ent)
 		ply:ConCommand("-attack")
 	end
 	if IsValid(ent) then
+		DropEntityIfHeld( ent )
 		ent:ForcePlayerDrop()
 	end
 end
@@ -330,84 +337,12 @@ function APG.blockPickup( ply )
 	end)
 end
 
-
---[[ Entity pickup part ]]
-
-hook.Add("PhysgunPickup","APG_PhysgunPickup", function(ply, ent)
-	if not APG.isBadEnt( ent ) then return end
-	if not APG.canPhysGun( ent, ply ) then return false end
-
-
-	ent.APG_Picked = true
-	ent.APG_Frozen = false
-
-	if ent.APG_HeldBy and ent.APG_HeldBy.plys and not ent.APG_HeldBy.plys[sid] then
-		local HasHolder = istable(ent.APG_HeldBy.plys) and (table.Count(ent.APG_HeldBy.plys) > 0)
-		local HeldByLast = ent.APG_HeldBy.last
-
-		if HasHolder then
-			if HeldByLast and (ply:IsAdmin() or ply:IsSuperAdmin()) then
-				for _,v in next, ent.APG_HeldBy.plys do
-					APG.ForcePlayerDrop(v, ent)
-				end
-			else
-				return false
-			end
-		end
-	end
-
-	ent.APG_HeldBy = (ent.APG_HeldBy and istable(ent.APG_HeldBy.plys)) and ent.APG_HeldBy or { plys = {} }
-	ent.APG_HeldBy.plys[ply:SteamID()] = ply
-	ent.APG_HeldBy.last = {ply = ply, id = ply:SteamID()}
-
-	ply.APG_CurrentlyHolding = ent
-
-	if APG.cfg["blockContraptionMove"].value then
-		local count = 0
-		local noFrozen = true
-
-		for _,v in next, constraint.GetAllConstrainedEntities(ent) do
-			count = count + 1
-			if v.APG_Frozen then
-				noFrozen = false
-				break
-			end
-		end
-
-		if noFrozen and ( count > 1 ) then
-			timer.Simple(0, function()
-				APG.freezeIt(ent, true)
-			end)
-		end
-	end
-end)
-
 --[[--------------------
-	No Collide (between them) on props unfreezed
+	Set when a prop is unfrozen.
 ]]----------------------
 hook.Add("PlayerUnfrozeObject", "APG_PlayerUnfrozeObject", function(ply, ent, object)
 	if not APG.isBadEnt( ent ) then return end
 	ent.APG_Frozen = false
-end)
-
---[[ Entity drop part ]]
-
---[[ PhysGun Drop and Anti Throw Props ]]
-hook.Add( "PhysgunDrop", "APG_physGunDrop", function( ply, ent )
-	ent.APG_HeldBy = ent.APG_HeldBy or {}
-
-	if ent.APG_HeldBy.plys then
-		ent.APG_HeldBy.plys[ply:SteamID()] = nil -- Remove the holder.
-	end
-
-	ply.APG_CurrentlyHolding = nil
-
-	if #ent.APG_HeldBy > 0 then return end
-	ent.APG_Picked = false
-
-	if APG.isBadEnt( ent ) and not APG.cfg["allowPK"].value then
-		APG.killVelocity(ent,true,false,true) -- Extend to constrained props, and wake target.
-	end
 end)
 
 --[[--------------------

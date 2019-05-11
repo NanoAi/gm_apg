@@ -168,10 +168,11 @@ defaultSettings.cfg = {
 		desc = "The ranks that you want to see the notification" -- If you have notifyULibInheritance you only need to do the lowest rank(s)
 	},
 
-
-	--[[----------
-		MISC
-	]]------------
+	--[[ Override Server Settings? ]]
+	touchServerSettings = {
+		value = false,
+		desc = "Should we override Server Settings? (Used for setting ConVars)"
+	},
 
 	--[[ Vehicles ]]--
 
@@ -200,9 +201,9 @@ defaultSettings.cfg = {
 		desc = "Toggle GravGun throwing."
 	},
 
-	blockFlashlightSpam = {
+	setTurboPhysics = {
 		value = false,
-		desc = "Toggle flashlight spamming."
+		desc = "Toggle sv_turbophysics."
 	},
 
 	--[[ Tool Control ]]--
@@ -251,6 +252,7 @@ defaultSettings.cfg = {
 		value = 700,
 		desc = "Max range a physics gun can go"
 	},
+
 	--[[ Logs ]]--
 
 	logStackCrashAttempt = {

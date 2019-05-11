@@ -40,7 +40,7 @@ to do, so naturally we made our own and decided to share it with you.
 * ✅ Supports anti-trapping for fading doors.
 * ✅ Send a message to admins when a large stack of props is detected
 * ⚠ Detours [PhysgunPickup](https://wiki.garrysmod.com/page/GM/PhysgunPickup) for better confirmations
-* ⚠ Detours [SetColor](https://wiki.garrysmod.com/page/Entity/SetColor) to prevent stuff from turning purple/pink
+* ⚠ Detours [SetColor](https://wiki.garrysmod.com/page/Entity/SetColor) to prevent stuff from turning purple/pink unexpectedly
 * ⚠ Detours [SetCollisionGroup](https://wiki.garrysmod.com/page/Entity/SetCollisionGroup) to prevent overrides
 
 Lag triggers are based on fancy algorithms and timers, if you are getting false positives try messing around with the values.

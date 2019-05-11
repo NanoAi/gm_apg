@@ -597,17 +597,6 @@ properties.Add( "apgoptions", {
 			icon = "icon16/tick.png",
 			callback = function() self:APGcmd( ent, "ghost" ) end,
 		})
-
-		addoption( "Get Entity Name", {
-			icon = "icon16/tick.png",
-			callback = function() self:APGcmd( ent, "getentname" ) end,
-		})
-
-		addoption( "laghook", {
-			icon = "icon16/tick.png",
-			callback = function() self:APGcmd( ent, "laghook" ) end,
-		})
-
 	end,
 	Action = function( self, ent ) end,
 	APGcmd = function( self, ent, cmd )

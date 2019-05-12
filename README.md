@@ -1,4 +1,4 @@
-# APG - Anti Prop Griefing & Crash Detection
+# APG - Anti Prop Griefing & Crash Protection
 
 ![- APG - Light Weight, Easy to Use, Stops Crashes](https://i.imgur.com/DrbZOgk.png "APG - Light Weight, Easy to Use, Stops Crashes")
 

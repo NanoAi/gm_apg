@@ -1,47 +1,54 @@
-# gm_apg
-APG - A light weight, easy to use solution to help stop prop griefing on your server
+# APG - Anti Prop Griefing & Crash Detection
 
-![- APG - Light Weight, Easy to Use, Stops Crashes](https://i.imgur.com/BK0N7jj.jpg "APG - Light Weight, Easy to Use, Stops Crashes")
+![- APG - Light Weight, Easy to Use, Stops Crashes](https://i.imgur.com/DrbZOgk.png "APG - Light Weight, Easy to Use, Stops Crashes")
 
-The development of APG was focused around the ability to provide a lightweight and efficient security against griefers whilst ensuring enough freedom to friendly players.
+We are dedicated and focused on providing servers with the best answer to prop
+griefers, killers, and exploiters. We saw all the currently available addons and
+felt that neither one of them alone could really do everything that we wanted it
+to do, so naturally we made our own and decided to share it with you.
 
-The main idea was to allow everyone to play with unfrozen props, thus every not frozen prop_physics will be set to collision group debris; that way, prop_physics won't collide with each other but can interact with world, players and static stuff.
-I often take as example players playing soccer ( ball = prop_physics), the ball will collide with players and goals (frozen stuff) but not with other unfrozen stuff (to avoid any exploit).
+## This does still require a prop protection addon
 
-Compatibility :
-APG is not meant to handle prop ownability, thus APG is made to work along side with a prop protection addon such as        Falco's Prop Protection (FPP) or other Prop Protection addon.
+### Compatible prop protection addons (with CPPI)
 
-It should work as soon as these are using Common Prop Protection Interface (CPPI).
-    
-Tested Prop Protection addons:
-* Falco's Prop Protection (FPP)
-* PatchProtect ( download it now - nil on CPPIcanPhysgun issue fixed ! Thanks to Domii894)
+* [Falco's Prop Protection (FPP)](https://github.com/FPtje/Falcos-Prop-protection/)
+* [PatchProtect](https://github.com/Patcher56/PatchProtect)
+* [Simple Prop Protection (SPP)](https://github.com/Donkie/SimplePropProtection)
 
-# WARNING: Don't use more then one prop protection addon at a time!
+### ⚠ Don't use more then one prop protection/anti prop griefing addon at a time! ( You have been warned! )
 
-![- FEATURES -](https://i.imgur.com/IM0forg.jpg "Features")
+## Features & Notes
 
-* Easy install and configuration ( use the ingame menu : !apg )
-* Customizable blacklist of entities to protect ( props, wire, etc)
-* Props ghosting/unghosting on physgun
-* Disable prop damage
-* Blocks prop push against players
-* Blocks prop push against vehicles
-* Blocks prop fly/surf
-* Blocks many kind of prop collision exploit
-* Blocks stacker spam collisions
-* Blocks Advanced Duplicator spam collisions exploit
-* Ability to block vehicles damages against players
-* Ability to make vehicles not collide with players
-* Allows to block physgun mass unfreeze (Physgun Reload)
-* Allows to block moving contraptions (props that are welded together)
-* Supports anti-trapping for fading doors.
-* Send a message to admins when a large stack of props is detected
+* ✅ Easy install and configuration ( Just say !apg )
+* ✅ Customizable blacklist of entities to protect ( props, wire, etc )
+* ✅ Props ghosting/unghosting on physgun
+* ✅ Disables prop damage to players
+* ✅ Controls prop pushing against players
+* ✅ Controls prop pushing vehicles
+* ✅ Controls prop surfing
+* ✅ Blocks many types of exploits
+* ✅ Blocks stacker exploit
+* ✅ Blocks fading door exploit
+* ✅ Blocks Advanced Duplicator exploit
+* ✅ Blocks tool gun spamming
+* ✅ Allows to toggle the use of the toolgun on the world
+* ✅ Ability to check entities around the prop for stack's
+* ✅ Ability to block vehicles damages against players
+* ✅ Ability to make vehicles not collide with players
+* ✅ Allows to block physgun reload
+* ✅ Allows to block moving contraptions (props that are welded together)
+* ✅ Supports anti-trapping for fading doors.
+* ✅ Send a message to admins when a large stack of props is detected
+* ⚠ Detours [PhysgunPickup](https://wiki.garrysmod.com/page/GM/PhysgunPickup) for better confirmations
+* ⚠ Detours [SetColor](https://wiki.garrysmod.com/page/Entity/SetColor) to prevent stuff from turning purple/pink unexpectedly
+* ⚠ Detours [SetCollisionGroup](https://wiki.garrysmod.com/page/Entity/SetCollisionGroup) to prevent overrides
 
 Lag triggers are based on fancy algorithms and timers, if you are getting false positives try messing around with the values.
 
 If you find any issue, exploit, possible improvement, suggestions, feel free to make an issue!
 
 Credits:
-* This project is currently updated and maintained by [LuaTenshi](http://steamcommunity.com/profiles/76561198096713277)
+
+* This project is currently updated and maintained by [NanoAi](http://steamcommunity.com/profiles/76561198096713277)
 * This addon was originally created by [WhileTrue](http://steamcommunity.com/profiles/76561197972967270)
+* Special thanks to [AvarianKnight](http://steamcommunity.com/profiles/76561198174460202) for reviving this project!

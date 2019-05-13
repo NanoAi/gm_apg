@@ -15,7 +15,9 @@ to do, so naturally we made our own and decided to share it with you.
 * [PatchProtect](https://github.com/Patcher56/PatchProtect)
 * [Simple Prop Protection (SPP)](https://github.com/Donkie/SimplePropProtection)
 
-### ⚠ Don't use more then one prop protection/anti prop griefing addon at a time! ( You have been warned! )
+### ⚠ Don't use more then one prop protection/anti prop griefing addon at a time!
+
+### ( You have been warned! )
 
 ## Features & Notes
 

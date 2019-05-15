@@ -426,11 +426,14 @@ local function openMenu( len )
 	local first = true
 
 	local modules = APG.modules
+
+	-- Attempt to force essential modules to be enabled.
 	modules["home"] = true
 	modules["canphysgun"] = true
 
 	for k, v in next, APG.modules do
-		if k == "canphysgun" then continue end
+		if k == "canphysgun" then continue end -- This module doesn't have UI, so it doesn't need a UI button.
+
 		local panel = vgui.Create( "DScrollPanel", APG_Main )
 		setScrollerTheme( panel:GetVBar() )
 
@@ -507,6 +510,8 @@ local function openMenu( len )
 
 		i = i + 1
 	end
+
+	-- Build all the expected panels.
 
 	APGBuildHomePanel()
 	APGBuildMiscPanel()

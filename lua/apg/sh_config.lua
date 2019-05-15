@@ -45,6 +45,7 @@ end
 
 local defaultSettings = {}
 defaultSettings.modules = { -- Set to true to enable and false to disable module.
+	["home"] = true, -- Essential, do not disable.
 	["ghosting"] = true,
 	["stack_detection"] = true,
 	["lag_detection"] = true,

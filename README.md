@@ -7,6 +7,10 @@ griefers, killers, and exploiters. We saw all the currently available addons and
 felt that neither one of them alone could really do everything that we wanted it
 to do, so naturally we made our own and decided to share it with you.
 
+> Due to seemingly consistent issues with the code base of APG I've made PUG.
+However I doubt PUG will get any updates because I simply no longer play Garry's mod,
+but if you'd like to check my alternative to APG, check out https://gitlab.com/NanoAi/gm_pug
+
 ## This does still require a prop protection addon
 
 ### Compatible prop protection addons (with CPPI)

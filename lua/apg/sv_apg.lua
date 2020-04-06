@@ -26,7 +26,7 @@ function APG.canPhysGun( ent, ply )
 		return false
 	end -- Check if the entity is physgun disabled.
 
-	if ply.APG_CantPickup == true or istable(APG_HeldBy.plys) --[[Might be useless check]] and APG_HeldBy.plys[ply:SteamID()] then
+	if ply.APG_CantPickup == true then
 		ply:ConCommand("-attack") -- Tell the player to stop physgunning.
 		return false
 	end -- Is APG blocking the pickup?

@@ -45,10 +45,9 @@ end
 APG._SetColor = APG._SetColor or ENT.SetColor
 
 function ENT:SetColor( color, ... )
-	if not APG.cfg["ghostColorToggle"].value then return end
 	local color = color
 	local r, g, b, a
-
+	
 	if type(color) == "number" then
 		color = Color(color, select(1, ...) or 255, select(2, ...) or 255, select(3, ...) or 255)
 	elseif type(color) == "table" and not IsColor(color) then

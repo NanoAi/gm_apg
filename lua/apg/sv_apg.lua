@@ -26,7 +26,8 @@ function APG.canPhysGun( ent, ply )
 		return false
 	end -- Check if the entity is physgun disabled.
 	
-	ent.APG_HeldBy = ent.APG_HeldBy or {plys = {}}
+	ent.APG_HeldBy = ent.APG_HeldBy or {}
+	ent.APG_HeldBy.plys = ent.APG_HeldBy.plys or {}
 
 	if ply.APG_CantPickup == true or next( ent.APG_HeldBy.plys ) then
 		ply:ConCommand("-attack") -- Tell the player to stop physgunning.

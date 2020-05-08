@@ -2,6 +2,14 @@ Due to seemingly consistent issues with the code base of APG I've made PUG.
 However I doubt PUG will get any updates because I simply no longer play Garry's mod,
 but if you'd like to check my alternative to APG, check out [__PUG__ on Gitlab](https://gitlab.com/NanoAi/gm_pug) or [__PUG__ Github Mirror](https://github.com/NanoAi/gm_pug)
 
+------------------
+
+This will no longer be updated as I can no longer support it, if you are looking for a good alternative please check out PUG linked above. It's also free, and can do almost everything APG can do.
+
+Also please for the love of god, don't pay for stuff like this.
+
+------------------
+
 # APG - Anti Prop Griefing & Crash Protection
 
 ![- APG - Light Weight, Easy to Use, Stops Crashes](https://i.imgur.com/DrbZOgk.png "APG - Light Weight, Easy to Use, Stops Crashes")
